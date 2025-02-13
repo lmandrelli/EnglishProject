@@ -1,5 +1,5 @@
 # Sample workflow for building and deploying a Next.js site to GitHub Pages
-name: Deploy Next.js site to Pages
+name: Deploy Bun site to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -57,7 +57,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: ./dist
 
   # Deployment job
   deploy:
