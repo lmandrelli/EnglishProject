@@ -1,0 +1,36 @@
+.character-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+}
+
+.characters {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.character-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.character-card:hover {
+    transform: scale(1.05);
+}
+
+.character-card img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.character-card h2 {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+}
