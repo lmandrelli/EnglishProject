@@ -41,7 +41,10 @@ router.post('/progress', async (req, res) => {
     try {
         const decoded = jwt.verify(token, secret);
         const user = await User.findById(decoded.id);
-        user.progress = { ...user.progress, ...progress };
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        user.progress = new Map(Object.entries(progress));
         await user.save();
         res.json({ message: 'Progress saved successfully' });
     } catch (error) {
