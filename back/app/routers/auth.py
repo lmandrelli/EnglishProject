@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
+from datetime import timedelta, datetime
 from bson import ObjectId
 
 from ..database.mongodb import users_collection
@@ -55,12 +55,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             detail="Email ou mot de passe incorrect",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    # Mettre à jour la dernière connexion
-    users_collection.update_one(
-        {"_id": user["_id"]},
-        {"$set": {"last_login": timedelta(minutes=0)}}
-    )
     
     # Créer le token d'accès
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

@@ -16,8 +16,12 @@ class UserLogin(BaseModel):
 class UserInDB(UserBase):
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    last_login: Optional[datetime] = None
     is_active: bool = True
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
 class User(UserBase):
     id: str
