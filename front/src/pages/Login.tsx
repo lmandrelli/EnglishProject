@@ -138,7 +138,7 @@ function Login() {
           
           {error && <div className="error-message">{error}</div>}
           
-          <button type="submit" className="login-button">
+          <button type="submit" className="menu-button">
             {isLogin ? 'Se connecter' : 'S\'inscrire'}
           </button>
         </form>
