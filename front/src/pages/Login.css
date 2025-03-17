@@ -22,12 +22,29 @@
   z-index: 10;
 }
 
-.login-title {
-  font-size: 2rem;
-  color: var(--accent-color);
-  margin-bottom: 1.5rem;
+.login-logo-container {
   text-align: center;
+  margin-bottom: 2rem;
+  margin-top: -1rem;
+  animation: pulse 3s infinite ease-in-out;
+}
+
+.login-logo {
+  max-width: 280px;
+  width: 90%;
+  height: auto;
+  margin-bottom: 0.5rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  filter: drop-shadow(0 0 10px rgba(100, 181, 246, 0.7));
+}
+
+.login-title {
+  font-size: 1.8rem;
+  color: var(--accent-color);
   text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+  margin: 0;
 }
 
 .form-group {
@@ -128,5 +145,17 @@
   }
   100% {
     transform: translateY(0) translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    text-shadow: 0 0 10px rgba(100, 181, 246, 0.7);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(100, 181, 246, 1);
+  }
+  100% {
+    text-shadow: 0 0 10px rgba(100, 181, 246, 0.7);
   }
 }

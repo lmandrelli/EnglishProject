@@ -21,9 +21,25 @@
 }
 
 .game-logo {
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
   text-align: center;
   animation: pulse 3s infinite ease-in-out;
+  margin-top: -2rem;
+}
+
+.logo-image {
+  max-width: 400px;
+  width: 90%;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(100, 181, 246, 0.7));
+  margin-bottom: 1rem;
+}
+
+.game-title {
+  font-size: 2rem;
+  color: var(--accent-color);
+  text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+  margin: 0;
 }
 
 .menu-buttons {
@@ -62,6 +78,14 @@
 
 .menu-button:hover {
   padding-left: 2.5rem;
+}
+
+.menu-button-disconnect {
+  background: var(--button-disconnect-gradient) !important;
+}
+
+.menu-button-disconnect:hover {
+  background: var(--button-disconnect-hover-gradient) !important;
 }
 
 /* Effet de vague bleue en arrière-plan - style Persona */

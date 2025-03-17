@@ -10,6 +10,8 @@
   --background-gradient: linear-gradient(135deg, #081221 0%, #0d2b4a 100%);
   --button-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   --button-hover-gradient: linear-gradient(135deg, #2a5298 0%, #3a63b8 100%);
+  --button-disconnect-gradient: linear-gradient(135deg, #8e1c1c 0%, #b71c1c 100%);
+  --button-disconnect-hover-gradient: linear-gradient(135deg, #b71c1c 0%, #d32f2f 100%);
 
   /* Propriétés de police */
   --font-main: 'Segoe UI', Arial, sans-serif;

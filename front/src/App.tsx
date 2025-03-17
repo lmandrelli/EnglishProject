@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import MainMenu from './pages/MainMenu';
 import Login from './pages/Login';
+import Game from './pages/Game';
 import { PrivateRoute } from './components/PrivateRoute';
 import './App.css';
 
@@ -14,6 +15,14 @@ function App() {
           element={
             <PrivateRoute>
               <MainMenu />
+            </PrivateRoute>
+          }
+        />
+        <Route
+         path="/game"
+         element={
+           <PrivateRoute>
+              <Game />
             </PrivateRoute>
           }
         />

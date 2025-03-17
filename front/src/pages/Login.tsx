@@ -89,7 +89,10 @@ function Login() {
       </div>
       
       <div className="login-box">
-        <h2 className="login-title">Celestial Wordforge</h2>
+        <div className="login-logo-container">
+          <img src="/CelestialWordforge.png" alt="Celestial Wordforge" className="login-logo" />
+          <h2 className="login-title">Celestial Wordforge</h2>
+        </div>
         
         <form onSubmit={handleSubmit}>
           {!isLogin && (

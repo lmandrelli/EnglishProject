@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './MainMenu.css';
 
 function MainMenu() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [particles, setParticles] = useState<Array<{ id: number, top: string, left: string, size: string, delay: string }>>([]);
 
   // Génère des particules en arrière-plan
@@ -21,12 +25,16 @@ function MainMenu() {
 
   const handleNewGame = () => {
     console.log('Commencer une nouvelle partie');
-    // Logique pour démarrer une nouvelle partie
+    navigate('/Game');
   };
 
   const handleLoadGame = () => {
     console.log('Charger une partie');
     // Logique pour charger une partie sauvegardée
+  };
+
+  const handleDisconnect = () => {
+    logout();
   };
 
   return (
@@ -52,6 +60,7 @@ function MainMenu() {
       {/* Contenu du menu */}
       <div className="menu-container">
         <div className="game-logo">
+          <img src="/CelestialWordforge.png" alt="Celestial Wordforge" className="logo-image" />
           <h1 className="game-title">Celestial Wordforge</h1>
         </div>
 
@@ -61,6 +70,9 @@ function MainMenu() {
           </button>
           <button onClick={handleLoadGame} className="button menu-button">
             Charger Partie
+          </button>
+          <button onClick={handleDisconnect} className="button menu-button menu-button-disconnect">
+            Déconnexion
           </button>
         </div>
       </div>
