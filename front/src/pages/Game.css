@@ -2,4 +2,153 @@
   position: relative;
   width: 100%;
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #1a1a1a;
+  user-select: none;
+}
+
+.home-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.home-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.enemies-container {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s ease;
+}
+
+.selected-enemy {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: slideDown 0.5s ease;
+  width: 100%;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.game-modes {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.game-mode {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  width: calc(33.33% - 20px);
+  min-width: 200px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-mode:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.game-mode h3 {
+  color: #fff;
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.game-mode p {
+  color: #ccc;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@keyframes slideDown {
+  from {
+    top: -200px;
+    opacity: 0;
+  }
+  to {
+    top: 100px;
+    opacity: 1;
+  }
+}
+
+.enemy-card {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.enemy-card:hover {
+  transform: scale(1.05);
+}
+
+.enemy-card img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.next-round-button {
+  background-color: #4a4a4a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+}
+
+.next-round-button:hover {
+  background-color: #666;
+}
+
+.next-round-button:active {
+  transform: translateY(1px);
+}
+
+.score {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: bold;
+  z-index: 1;
+  user-select: none;
 }
