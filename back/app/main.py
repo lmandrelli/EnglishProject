@@ -1,8 +1,9 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import auth
+from .routers import auth, game
 from .utils.auth import get_current_active_user
+from .database.init_game_data import init_game_data
 
 app = FastAPI(
     title="English Project API",
@@ -22,6 +23,7 @@ app.add_middleware(
 
 # Inclure les routeurs
 app.include_router(auth.router)
+app.include_router(game.router)
 
 @app.get("/health")
 async def health_check():
@@ -30,3 +32,8 @@ async def health_check():
 @app.get("/protected-route")
 async def protected_route(user=Depends(get_current_active_user)):
     return {"message": f"Bonjour {user.username}, vous avez accès à cette route protégée"}
+
+@app.on_event("startup")
+async def startup_event():
+    init_game_data()
+    print("Application démarrée et données initialisées")
