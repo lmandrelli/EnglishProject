@@ -4,11 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Récupération des variables d'environnement
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = os.getenv("DB_NAME", "celestial_wordforge")
 
-# Connexion à MongoDB
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 
@@ -304,7 +302,6 @@ idiom_data = [
 ]
 
 def init_game_data():
-    # Crée les collections si elles n'existent pas
     if "crossword_items" not in db.list_collection_names():
         db.create_collection("crossword_items")
     if "gap_fill_items" not in db.list_collection_names():
@@ -324,7 +321,6 @@ def init_game_data():
     if "idiom_items" not in db.list_collection_names():
         db.create_collection("idiom_items")
 
-    # Vérifie si les collections sont vides et les remplit si nécessaire
     if db.crossword_items.count_documents({}) == 0:
         db.crossword_items.insert_many(crossword_data)
         print("Données de mots-croisés insérées")
