@@ -7,7 +7,7 @@
  - [ ] Firsts mini-games :
   Type Vocabulary : 
   - [ ] Crossword (1 word, with definition)
-  - [ ] Texte a trou (1 phrase, 3 trous, with definition)
+  - [ ] Texte a trou (1 phrase, nb de trous, with definition)
   - [ ] Relie à synonyme (1 mot, 1 synonyme)
 
 - [ ] Seconds mini-games :

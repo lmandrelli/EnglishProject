@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./Game.css";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import CrosswordGame from "../components/CrosswordGame";
 
 type GameMode = {
   id: string;
@@ -35,11 +36,17 @@ interface Enemy {
   gameModes: GameMode[];
 }
 
+interface GameState {
+  mode: GameMode | null;
+  inProgress: boolean;
+}
+
 function Game() {
   const navigate = useNavigate();
   const [currentRound, setCurrentRound] = useState(1);
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [selectedEnemy, setSelectedEnemy] = useState<Enemy | null>(null);
+  const [gameState, setGameState] = useState<GameState>({ mode: null, inProgress: false });
 
   // Get random game modes for an enemy type
   const getGameModes = (type: 'p3' | 'p4' | 'p5' | 'boss'): GameMode[] => {
@@ -150,7 +157,20 @@ function Game() {
 
   const handleNextRound = () => {
     setSelectedEnemy(null);
+    setGameState({ mode: null, inProgress: false });
     setCurrentRound(prev => prev + 1);
+  };
+
+  const handleModeSelect = (mode: GameMode) => {
+    setGameState({ mode, inProgress: true });
+  };
+
+  const handleGameWin = () => {
+    handleNextRound();
+  };
+
+  const handleGameLose = () => {
+    setGameState({ mode: null, inProgress: false });
   };
 
   return (
@@ -159,22 +179,38 @@ function Game() {
         <Home size={24} />
       </button>
       {selectedEnemy && (
-        <div className="selected-enemy">
-          <div className="enemy-card">
-            <div className="score">{selectedEnemy.score}</div>
-            <img src={`/${selectedEnemy.image}`} alt={`Enemy ${selectedEnemy.type}`} />
+        <div className="battle-area">
+          <div className="selected-enemy">
+            <div className="enemy-card">
+              <div className="score">{selectedEnemy.score}</div>
+              <img src={`/${selectedEnemy.image}`} alt={`Enemy ${selectedEnemy.type}`} />
+            </div>
           </div>
-          <div className="game-modes">
-            {selectedEnemy.gameModes.map(mode => (
-              <div key={mode.id} className="game-mode">
-                <h3>{mode.name}</h3>
-                <p>{mode.description}</p>
-              </div>
-            ))}
-          </div>
-          <button className="next-round-button" onClick={handleNextRound}>
-            Next Round
-          </button>
+
+          {!gameState.inProgress && (
+            <div className="game-modes">
+              {selectedEnemy.gameModes.map(mode => (
+                <div 
+                  key={mode.id} 
+                  className="game-mode"
+                  onClick={() => handleModeSelect(mode)}
+                >
+                  <h3>{mode.name}</h3>
+                  <p>{mode.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {gameState.mode?.id === 'word_puzzle' && (
+            <div className="game-container">
+              <CrosswordGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+              />
+            </div>
+          )}
         </div>
       )}
       {!selectedEnemy && (
