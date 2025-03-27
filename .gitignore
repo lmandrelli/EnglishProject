@@ -281,4 +281,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+package-lock.json
+
 # End of https://www.toptal.com/developers/gitignore/api/react,visualstudiocode,macos,linux,windows,python
