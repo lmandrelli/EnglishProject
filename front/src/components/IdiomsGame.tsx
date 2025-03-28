@@ -16,10 +16,9 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
   const [correct, setCorrect] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rounds, setRounds] = useState(0);
+  const [currentRound, setCurrentRound] = useState(1);
   const [maxRounds] = useState(3);
 
-  // Fetch new idiom data
   const fetchNewIdiom = async () => {
     try {
       setLoading(true);
@@ -37,7 +36,6 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
     }
   };
 
-  // Initial data fetch
   useEffect(() => {
     fetchNewIdiom();
   }, []);
@@ -48,42 +46,34 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
     setSelectedExpressionIndex(index);
     
     if (idiomItem && index === idiomItem.fake_index) {
-      // Correct answer - found the fake idiom
       setCorrect(true);
       setCurrentScore(prev => prev + 300);
       setGameOver(true);
       
-      // Move to next round or end game
-      const newRounds = rounds + 1;
-      setRounds(newRounds);
-      
-      if (newRounds >= maxRounds) {
-        // Game complete after all rounds
+      if (currentRound >= maxRounds) {
         if (currentScore + 300 > enemyScore) {
           setTimeout(() => onWin(), 1500);
         } else {
           setTimeout(() => onLose(), 1500);
         }
       } else {
-        // Load next idiom after a delay
-        setTimeout(() => fetchNewIdiom(), 1500);
+        setTimeout(() => {
+          setCurrentRound(prev => prev + 1);
+          fetchNewIdiom();
+        }, 1500);
       }
     } else {
-      // Incorrect answer
       setCorrect(false);
       setCurrentScore(prev => Math.max(0, prev - 100));
       setGameOver(true);
       
-      // Move to next round or end game
-      const newRounds = rounds + 1;
-      setRounds(newRounds);
-      
-      if (newRounds >= maxRounds) {
-        // Game complete after all rounds
+      if (currentRound >= maxRounds) {
         setTimeout(() => onLose(), 1500);
       } else {
-        // Load next idiom after a delay
-        setTimeout(() => fetchNewIdiom(), 1500);
+        setTimeout(() => {
+          setCurrentRound(prev => prev + 1);
+          fetchNewIdiom();
+        }, 1500);
       }
     }
   };
@@ -105,7 +95,7 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
       <div className="instructions">
         <h3>Find the Non-Existent Idiom!</h3>
         <p>One of these expressions is not a real English idiom. Can you spot the fake one?</p>
-        <p className="round-counter">Round {rounds + 1} of {maxRounds}</p>
+        <p className="round-counter">Round {currentRound} of {maxRounds}</p>
       </div>
       
       {idiomItem && (
@@ -133,7 +123,7 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
           {gameOver && (
             <div className="explanation-box">
               <p>{idiomItem.explanation}</p>
-              {rounds < maxRounds && <p className="next-round-hint">Next round in a moment...</p>}
+              {currentRound < maxRounds && <p className="next-round-hint">Next round in a moment...</p>}
             </div>
           )}
         </div>

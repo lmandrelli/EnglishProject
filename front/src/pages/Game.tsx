@@ -215,6 +215,7 @@ function Game() {
             </div>
           )}
 
+          {/* Add the new culture game components */}
           {gameState.mode?.id === 'regional_variants' && (
             <div className="game-container">
               <RegionalVariantsGame
