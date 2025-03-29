@@ -3,6 +3,9 @@ import "./Game.css";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CrosswordGame from "../components/CrosswordGame";
+import RegionalVariantsGame from "../components/RegionalVariantsGame";
+import FoodOriginsGame from "../components/FoodOriginsGame";
+import IdiomsGame from "../components/IdiomsGame";
 
 type GameMode = {
   id: string;
@@ -210,6 +213,37 @@ function Game() {
                 onWin={handleGameWin}
                 onLose={handleGameLose}
                 timeLimit={60}
+              />
+            </div>
+          )}
+
+          {/* Add the new culture game components */}
+          {gameState.mode?.id === 'regional_variants' && (
+            <div className="game-container">
+              <RegionalVariantsGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+              />
+            </div>
+          )}
+
+          {gameState.mode?.id === 'cultural_origins' && (
+            <div className="game-container">
+              <FoodOriginsGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+              />
+            </div>
+          )}
+
+          {gameState.mode?.id === 'expression_mastery' && (
+            <div className="game-container">
+              <IdiomsGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
               />
             </div>
           )}
