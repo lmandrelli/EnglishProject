@@ -536,14 +536,12 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
               const resetY = selectedWord.direction === 'down' ? selectedWord.startY + i : selectedWord.startY;
               const resetKey = `${resetX},${resetY}`;
               
-              // Effacer les saisies utilisateur (sauf la touche qui vient d'être pressée)
-              if (resetKey !== cellKey) {
-                setUserInputs(prev => {
-                  const newInputs = { ...prev };
-                  delete newInputs[resetKey];
-                  return newInputs;
-                });
-              }
+              // Effacer les saisies utilisateur (y compris la touche qui vient d'être pressée)
+              setUserInputs(prev => {
+                const newInputs = { ...prev };
+                delete newInputs[resetKey];
+                return newInputs;
+              });
               
               // Animer les cellules incorrectes
               const cell = document.querySelector(`[data-position="${resetX},${resetY}"]`) as HTMLElement;
@@ -552,6 +550,14 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
                 setTimeout(() => cell.classList.remove('incorrect'), 1000);
               }
             }
+            
+            // Remettre le focus sur la première lettre du mot
+            setTimeout(() => {
+              setCurrentCell({ 
+                x: selectedWord.startX, 
+                y: selectedWord.startY 
+              });
+            }, 10);
           }
         }
       }
