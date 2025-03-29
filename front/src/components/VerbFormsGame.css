@@ -1,0 +1,105 @@
+.verb-forms-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: #fff;
+}
+
+.verb-forms-game {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+.game-info {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.verb-info,
+.tense-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.info-label {
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.info-value {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.sentence-section {
+  font-size: 1.5rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  line-height: 1.6;
+}
+
+.verb-input-container {
+  display: inline-block;
+  margin: 0 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.verb-input-container.correct {
+  background: rgba(76, 175, 80, 0.2);
+  border-radius: 4px;
+}
+
+.verb-input-container.incorrect {
+  background: rgba(244, 67, 54, 0.2);
+  border-radius: 4px;
+}
+
+.verb-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #666;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 1.2rem;
+  padding: 0.3rem 0.8rem;
+  min-width: 120px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.verb-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.instructions {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.instructions h3 {
+  color: #4CAF50;
+  margin-bottom: 0.5rem;
+}
+
+.score-display {
+  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  border-radius: 4px;
+}

@@ -10,6 +10,7 @@ import IdiomsGame from "../components/IdiomsGame";
 import SynonymMatchGame from "../components/SynonymMatchGame";
 import PhrasalVerbGame from "../components/PhrasalVerbGame";
 import WordCompletionGame from "../components/WordCompletionGame";
+import VerbFormsGame from "../components/VerbFormsGame";
 
 type GameMode = {
   id: string;
@@ -291,6 +292,17 @@ function Game() {
           {gameState.mode?.id === 'error_detection' && (
             <div className="game-container">
               <ErrorDetectionGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+                timeLimit={60}
+              />
+            </div>
+          )}
+
+          {gameState.mode?.id === 'verb_forms' && (
+            <div className="game-container">
+              <VerbFormsGame
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
