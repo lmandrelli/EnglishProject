@@ -38,10 +38,10 @@ interface WordWithDefinition {
 
 const getPointsPerLetter = (difficulty: number): number => {
   switch (difficulty) {
-    case 1: return 1;
-    case 2: return 2;
-    case 3: return 3;
-    default: return 1;
+    case 1: return 10;
+    case 2: return 25;
+    case 3: return 50;
+    default: return 10;
   }
 };
 
@@ -233,13 +233,19 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   const checkWordCompletion = (word: Word) => {
     if (completedWords.has(word.word)) return false;
 
-    const isComplete = Array.from({ length: word.word.length }, (_, i) => {
+    const wordArray = Array.from({ length: word.word.length }, (_, i) => {
       const x = word.direction === 'across' ? word.startX + i : word.startX;
       const y = word.direction === 'down' ? word.startY + i : word.startY;
       return userInputs[`${x},${y}`] || '';
-    }).every(letter => letter !== '');
+    });
 
-    if (isComplete) {
+    // Return early if any letter is missing
+    if (wordArray.some(letter => letter === '')) {
+      return false;
+    }
+
+    // All letters are filled, proceed with validation
+    {
       const isValid = validateWord(word);
       
       if (isValid) {
@@ -281,50 +287,71 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
       matches: enteredWord === word.word
     });
 
-    if (enteredWord === word.word) {
-      const newCompleted = new Set(completedWords);
-      newCompleted.add(word.word);
-      setCompletedWords(newCompleted);
-
-      const points = word.word.length * getPointsPerLetter(word.difficulty);
-      const newScore = currentScore + points;
-      console.log('📈 Updating score:', {
-        points,
-        newScore,
-        difficulty: word.difficulty
-      });
-      setCurrentScore(newScore);
-
-      const newGrid = [...grid];
-      for (let i = 0; i < word.word.length; i++) {
-        const x = word.direction === 'across' ? word.startX + i : word.startX;
-        const y = word.direction === 'down' ? word.startY + i : word.startY;
-        newGrid[y][x].letter = word.word[i];
-      }
-      setGrid(newGrid);
-
-      if (newCompleted.size === words.length) {
-        console.log('🎯 All words completed!', {
-          finalScore: newScore,
-          enemyScore,
-          win: newScore >= enemyScore
-        });
-        if (newScore >= enemyScore) {
-          const gridElement = document.querySelector('.grid') as HTMLElement;
-          if (gridElement) {
-            gridElement.classList.add('winning-grid');
-          setTimeout(() => {
-            setShowWinAnimation(true);
-          }, 1000);
-          }
-        } else {
-          initializeNewPuzzle();
-        }
-      }
-
+    if (enteredWord.toUpperCase() === word.word.toUpperCase()) {
+      // Word is correct! We'll handle this in a separate function
+      setTimeout(() => validateCorrectWord(word, userInputs), 10);
       return true;
     }
     return false;
+  };
+
+  const validateCorrectWord = (word: Word, inputs: { [key: string]: string }) => {
+    const newCompleted = new Set(completedWords);
+    newCompleted.add(word.word);
+    setCompletedWords(newCompleted);
+    
+    const points = word.word.length * getPointsPerLetter(word.difficulty);
+    const newScore = currentScore + points;
+    setCurrentScore(newScore);
+
+    const newGrid = [...grid];
+    for (let i = 0; i < word.word.length; i++) {
+      const x = word.direction === 'across' ? word.startX + i : word.startX;
+      const y = word.direction === 'down' ? word.startY + i : word.startY;
+      newGrid[y][x].letter = word.word[i].toUpperCase(); // Assurer que les lettres sont en majuscules
+    }
+    setGrid(newGrid);
+
+    setSelectedWord(null);
+    setCurrentCell(null);
+    setCurrentDirection(null);
+
+    if (newCompleted.size === words.length) {
+      if (newScore >= enemyScore) {
+        const gridElement = document.querySelector('.grid') as HTMLElement;
+        if (gridElement) {
+          gridElement.classList.add('winning-grid');
+          setTimeout(() => {
+            setShowWinAnimation(true);
+          }, 1000);
+        }
+      } else {
+        initializeNewPuzzle();
+      }
+    }
+  };
+
+  const resetIncorrectWord = (word: Word) => {
+    // Reset word cells and mark them red
+    for (let i = 0; i < word.word.length; i++) {
+      const x = word.direction === 'across' ? word.startX + i : word.startX;
+      const y = word.direction === 'down' ? word.startY + i : word.startY;
+      const cellKey = `${x},${y}`;
+      
+      // Reset the inputs
+      setUserInputs(prev => {
+        const newInputs = { ...prev };
+        delete newInputs[cellKey];
+        return newInputs;
+      });
+
+      // Highlight cells as incorrect
+      const cell = document.querySelector(`[data-position="${x},${y}"]`) as HTMLElement;
+      if (cell) {
+        cell.classList.add('incorrect');
+        setTimeout(() => cell.classList.remove('incorrect'), 1000);
+      }
+    }
   };
 
   const initializeNewPuzzle = async () => {
@@ -423,38 +450,252 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>, x: number, y: number) => {
-    if (!grid[y][x].isActive || isCompletedCell(x, y) || !selectedWord || completedWords.has(selectedWord.word)) return;
+    // Vérifier si la cellule appartient au mot sélectionné, même si elle fait partie d'un autre mot déjà complété
+    const isPartOfSelectedWord = selectedWord && (
+      (selectedWord.direction === 'across' && 
+        y === selectedWord.startY && 
+        x >= selectedWord.startX && 
+        x < selectedWord.startX + selectedWord.word.length) ||
+      (selectedWord.direction === 'down' && 
+        x === selectedWord.startX && 
+        y >= selectedWord.startY && 
+        y < selectedWord.startY + selectedWord.word.length)
+    );
 
+    // Empêcher la saisie seulement si :
+    // - la cellule n'est pas active, ou
+    // - le mot est déjà complété, ou
+    // - aucun mot n'est sélectionné, ou 
+    // - la cellule n'appartient pas au mot sélectionné
+    if (!grid[y][x].isActive || !selectedWord || completedWords.has(selectedWord.word) || !isPartOfSelectedWord) return;
+    
     if (/^[a-zA-Z]$/.test(e.key)) {
-      const letter = e.key.toUpperCase();
+      const letter = e.key.toUpperCase(); // Toujours mettre en majuscule
       const cellKey = `${x},${y}`;
       
-      console.log('⌨️ Key pressed:', {
-        letter,
-        position: { x, y },
-        word: selectedWord.word,
-        currentCompletion: userInputs
-      });
-
-      setUserInputs(prev => {
-        const newInputs = { ...prev, [cellKey]: letter };
+      // Mise à jour directe de la lettre dans un objet temporaire avant validation
+      const updatedInputs = { ...userInputs, [cellKey]: letter };
+      
+      // Appliquer la mise à jour à l'état
+      setUserInputs(updatedInputs);
+      
+      // Vérifier si le mot est complet après chaque saisie
+      if (selectedWord) {
+        const wordArray = Array.from({ length: selectedWord.word.length }, (_, i) => {
+          const letterX = selectedWord.direction === 'across' ? selectedWord.startX + i : selectedWord.startX;
+          const letterY = selectedWord.direction === 'down' ? selectedWord.startY + i : selectedWord.startY;
+          return updatedInputs[`${letterX},${letterY}`] || '';
+        });
         
-        // After updating inputs, check word completion
-        setTimeout(() => {
-          checkWordCompletion(selectedWord);
-        }, 0);
+        const isComplete = wordArray.every(l => l !== '');
         
-        return newInputs;
-      });
-
-      // Move to next cell
+        if (isComplete) {
+          // Validation immédiate en utilisant les données mises à jour
+          const enteredWord = wordArray.join('');
+          if (enteredWord.toUpperCase() === selectedWord.word.toUpperCase()) {
+            // Mot correct - valider immédiatement
+            const newCompleted = new Set(completedWords);
+            newCompleted.add(selectedWord.word);
+            setCompletedWords(newCompleted);
+            
+            const points = selectedWord.word.length * getPointsPerLetter(selectedWord.difficulty);
+            const newScore = currentScore + points;
+            setCurrentScore(newScore);
+            
+            const newGrid = [...grid];
+            for (let i = 0; i < selectedWord.word.length; i++) {
+              const cellX = selectedWord.direction === 'across' ? selectedWord.startX + i : selectedWord.startX;
+              const cellY = selectedWord.direction === 'down' ? selectedWord.startY + i : selectedWord.startY;
+              newGrid[cellY][cellX].letter = selectedWord.word[i].toUpperCase(); // Assurer que les lettres sont en majuscules
+            }
+            setGrid(newGrid);
+            
+            setSelectedWord(null);
+            setCurrentCell(null);
+            setCurrentDirection(null);
+            
+            // Vérifier si tous les mots sont complétés
+            if (newCompleted.size === words.length) {
+              if (newScore >= enemyScore) {
+                const gridElement = document.querySelector('.grid') as HTMLElement;
+                if (gridElement) {
+                  gridElement.classList.add('winning-grid');
+                  setTimeout(() => {
+                    setShowWinAnimation(true);
+                  }, 1000);
+                }
+              } else {
+                initializeNewPuzzle();
+              }
+            }
+            return; // Sortir de la fonction après avoir validé le mot
+          } else {
+            // Mot incorrect - réinitialiser
+            for (let i = 0; i < selectedWord.word.length; i++) {
+              const resetX = selectedWord.direction === 'across' ? selectedWord.startX + i : selectedWord.startX;
+              const resetY = selectedWord.direction === 'down' ? selectedWord.startY + i : selectedWord.startY;
+              const resetKey = `${resetX},${resetY}`;
+              
+              // Effacer les saisies utilisateur (sauf la touche qui vient d'être pressée)
+              if (resetKey !== cellKey) {
+                setUserInputs(prev => {
+                  const newInputs = { ...prev };
+                  delete newInputs[resetKey];
+                  return newInputs;
+                });
+              }
+              
+              // Animer les cellules incorrectes
+              const cell = document.querySelector(`[data-position="${resetX},${resetY}"]`) as HTMLElement;
+              if (cell) {
+                cell.classList.add('incorrect');
+                setTimeout(() => cell.classList.remove('incorrect'), 1000);
+              }
+            }
+          }
+        }
+      }
+      
+      // Gestion de la navigation entre les cellules (déplacement à la suivante après la saisie)
       if (currentDirection) {
-        const nextX = currentDirection === 'across' ? x + 1 : x;
-        const nextY = currentDirection === 'down' ? y + 1 : y;
-
-        // Only move to next cell if within grid bounds and cell is active
-        if (nextX < grid[0].length && nextY < grid.length && grid[nextY][nextX].isActive) {
-          setCurrentCell({ x: nextX, y: nextY });
+        // Passer à la cellule suivante non-validée
+        let nextX = x;
+        let nextY = y;
+        let found = false;
+        
+        // Chercher la prochaine cellule non-validée dans la direction actuelle
+        while (!found) {
+          if (currentDirection === 'across') {
+            nextX += 1;
+          } else {
+            nextY += 1;
+          }
+          
+          // Vérifier si la position est encore dans la grille et fait partie du mot
+          const isWithinGrid = nextX < grid[0].length && nextY < grid.length;
+          const isPartOfSelectedWord = selectedWord && (
+            (currentDirection === 'across' && 
+             nextY === selectedWord.startY && 
+             nextX >= selectedWord.startX && 
+             nextX < selectedWord.startX + selectedWord.word.length) ||
+            (currentDirection === 'down' && 
+             nextX === selectedWord.startX && 
+             nextY >= selectedWord.startY && 
+             nextY < selectedWord.startY + selectedWord.word.length)
+          );
+          
+          if (!isWithinGrid || !isPartOfSelectedWord) {
+            // Si on a dépassé les limites du mot ou de la grille, rester sur la cellule actuelle
+            nextX = x;
+            nextY = y;
+            found = true;
+          } else if (grid[nextY][nextX].isActive) {
+            // On a trouvé une cellule, qu'elle soit déjà validée ou non
+            found = true;
+          }
+        }
+        
+        setCurrentCell({ x: nextX, y: nextY });
+      }
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      // Effacer le contenu de la cellule actuelle
+      const cellKey = `${x},${y}`;
+      
+      if (userInputs[cellKey]) {
+        // Si la cellule actuelle contient une lettre, l'effacer
+        setUserInputs(prev => {
+          const newInputs = { ...prev };
+          delete newInputs[cellKey];
+          return newInputs;
+        });
+      } else if (currentDirection) {
+        // Si la cellule est vide, aller à la cellule précédente non-validée
+        let prevX = x;
+        let prevY = y;
+        let found = false;
+        
+        // Chercher la cellule précédente non-validée
+        while (!found) {
+          if (currentDirection === 'across') {
+            prevX -= 1;
+          } else {
+            prevY -= 1;
+          }
+          
+          // Vérifier si on est encore dans le mot
+          const isWithinWord = (
+            (currentDirection === 'across' && 
+             prevY === selectedWord?.startY && 
+             prevX >= selectedWord?.startX) ||
+            (currentDirection === 'down' && 
+             prevX === selectedWord?.startX && 
+             prevY >= selectedWord?.startY)
+          );
+          
+          if (prevX < 0 || prevY < 0 || !isWithinWord) {
+            // Si on sort du mot ou de la grille, rester sur la cellule actuelle
+            prevX = x;
+            prevY = y;
+            found = true;
+          } else if (grid[prevY] && grid[prevY][prevX] && 
+                     grid[prevY][prevX].isActive && 
+                     !isCompletedCell(prevX, prevY)) {
+            // On a trouvé une cellule valide non complétée
+            found = true;
+          }
+        }
+        
+        if (prevX !== x || prevY !== y) {
+          // Effacer le contenu de la cellule précédente
+          const prevCellKey = `${prevX},${prevY}`;
+          setUserInputs(prev => {
+            const newInputs = { ...prev };
+            delete newInputs[prevCellKey];
+            return newInputs;
+          });
+          
+          // Déplacer le focus à la cellule précédente
+          setCurrentCell({ x: prevX, y: prevY });
+        }
+      }
+    } else if (e.key === 'Enter' || e.key === 'Return') {
+      // Corriger la dernière entrée
+      if (selectedWord && currentDirection) {
+        // Calculer les coordonnées de la dernière cellule remplie
+        let lastFilledX = x;
+        let lastFilledY = y;
+        
+        if (currentDirection === 'across') {
+          for (let i = 1; i <= x - selectedWord.startX; i++) {
+            const checkX = x - i;
+            const checkY = y;
+            const checkKey = `${checkX},${checkY}`;
+            
+            if (!userInputs[checkKey]) break;
+            lastFilledX = checkX;
+          }
+        } else { // down
+          for (let i = 1; i <= y - selectedWord.startY; i++) {
+            const checkX = x;
+            const checkY = y - i;
+            const checkKey = `${checkX},${checkY}`;
+            
+            if (!userInputs[checkKey]) break;
+            lastFilledY = checkY;
+          }
+        }
+        
+        // Effacer le contenu de la dernière cellule remplie
+        const lastCellKey = `${lastFilledX},${lastFilledY}`;
+        if (userInputs[lastCellKey]) {
+          setUserInputs(prev => {
+            const newInputs = { ...prev };
+            delete newInputs[lastCellKey];
+            return newInputs;
+          });
+          
+          // Déplacer le focus à cette cellule
+          setCurrentCell({ x: lastFilledX, y: lastFilledY });
         }
       }
     }
@@ -477,7 +718,20 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   };
 
   const handleTimeUp = () => {
-    setShowLoseOverlay(true);
+    // Vérifier le score avant d'afficher le menu approprié
+    if (currentScore >= enemyScore) {
+      // Si le score est suffisant, afficher l'animation de victoire
+      const gridElement = document.querySelector('.grid') as HTMLElement;
+      if (gridElement) {
+        gridElement.classList.add('winning-grid');
+        setTimeout(() => {
+          setShowWinAnimation(true);
+        }, 1000);
+      }
+    } else {
+      // Sinon, afficher le menu de défaite
+      setShowLoseOverlay(true);
+    }
   };
 
   const handleReturnToMenu = () => {
@@ -516,7 +770,7 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
                     } ${isCompletedCell(x, y) ? 'completed' : ''}`}
                     onClick={() => handleCellClick(x, y)}
                     onKeyDown={(e) => handleKeyPress(e, x, y)}
-                    tabIndex={cell.isActive && !isCompletedCell(x, y) ? 0 : -1}
+                    tabIndex={cell.isActive && (currentCell?.x === x && currentCell?.y === y ? 0 : -1)}
                     data-position={`${x},${y}`}
                   >
                     {cell.number && <span className="cell-number">{cell.number}</span>}
