@@ -77,12 +77,25 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
         newMatchedPairs.add(dish as string);
         newMatchedPairs.add(country as string);
         setMatchedPairs(newMatchedPairs);
-        setCurrentScore(prevScore => prevScore + 200);
+        // Find the matched item to get its difficulty level
+        const matchedItem = foodOrigins.find(
+          food => food.dish_name === dish && food.origin_country === country
+        );
+        // Score based on difficulty level
+        let difficultyScore;
+        if (matchedItem?.difficulty === 1) {
+          difficultyScore = 100;
+        } else if (matchedItem?.difficulty === 2) {
+          difficultyScore = 150;
+        } else {
+          difficultyScore = 300;
+        }
+        setCurrentScore(prevScore => prevScore + difficultyScore);
         
         // Vérifier si tous les plats ont été associés
         if (newMatchedPairs.size === foodOrigins.length * 2) {
           // Vérifier si le score est suffisant pour gagner
-          if (currentScore + 200 > enemyScore) {
+          if (currentScore + difficultyScore > enemyScore) {
             setTimeout(() => {
               setShowWinAnimation(true);
             }, 500);

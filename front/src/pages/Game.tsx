@@ -224,6 +224,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
+                timeLimit={60}
               />
             </div>
           )}
@@ -234,6 +235,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
+                timeLimit={60}
               />
             </div>
           )}
@@ -244,6 +246,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
+                timeLimit={60}
               />
             </div>
           )}

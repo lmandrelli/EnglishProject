@@ -58,7 +58,16 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
     
     if (idiomItem && index === idiomItem.fake_index) {
       setCorrect(true);
-      const newScore = currentScore + 300;
+      // Score based on difficulty level
+      let difficultyScore;
+      if (idiomItem.difficulty === 1) {
+        difficultyScore = 200;
+      } else if (idiomItem.difficulty === 2) {
+        difficultyScore = 300;
+      } else {
+        difficultyScore = 500;
+      }
+      const newScore = currentScore + difficultyScore;
       setCurrentScore(newScore);
       setGameOver(true);
       

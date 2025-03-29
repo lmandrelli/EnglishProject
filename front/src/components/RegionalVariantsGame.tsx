@@ -70,12 +70,25 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
         newMatchedPairs.add(ukWord as string);
         newMatchedPairs.add(usWord as string);
         setMatchedPairs(newMatchedPairs);
-        setCurrentScore(prevScore => prevScore + 200);
+        // Find the matched item to get its difficulty level
+        const matchedItem = regionalVariants.find(
+          item => item.uk_word === ukWord && item.us_word === usWord
+        );
+        // Score based on difficulty level
+        let difficultyScore;
+        if (matchedItem?.difficulty === 1) {
+          difficultyScore = 100;
+        } else if (matchedItem?.difficulty === 2) {
+          difficultyScore = 150;
+        } else {
+          difficultyScore = 300;
+        }
+        setCurrentScore(prevScore => prevScore + difficultyScore);
         
         // Vérifier si toutes les paires ont été associées
         if (newMatchedPairs.size === regionalVariants.length * 2) {
           // Vérifier si le score est suffisant pour gagner
-          if (currentScore + 200 > enemyScore) {
+          if (currentScore + difficultyScore > enemyScore) {
             setTimeout(() => {
               setShowWinAnimation(true);
             }, 500);
