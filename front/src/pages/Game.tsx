@@ -3,6 +3,7 @@ import "./Game.css";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CrosswordGame from "../components/CrosswordGame";
+import ErrorDetectionGame from "../components/ErrorDetectionGame";
 import RegionalVariantsGame from "../components/RegionalVariantsGame";
 import FoodOriginsGame from "../components/FoodOriginsGame";
 import IdiomsGame from "../components/IdiomsGame";
@@ -267,6 +268,17 @@ function Game() {
           {gameState.mode?.id === 'verb_combinations' && (
             <div className="game-container">
               <PhrasalVerbGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+                timeLimit={60}
+              />
+            </div>
+          )}
+
+          {gameState.mode?.id === 'error_detection' && (
+            <div className="game-container">
+              <ErrorDetectionGame
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
