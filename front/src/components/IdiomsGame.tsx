@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { getCultureIdioms, IdiomItem } from '../services/gameService';
+import Timer from './Timer';
+import WinAnimation from './WinAnimation';
+import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
 
 interface IdiomsGameProps {
   enemyScore: number;
   onWin: () => void;
   onLose: () => void;
+  timeLimit?: number; // Time limit in seconds (default: 120)
 }
 
-function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
+function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGameProps) {
   const [currentScore, setCurrentScore] = useState(0);
   const [idiomItem, setIdiomItem] = useState<IdiomItem | null>(null);
   const [selectedExpressionIndex, setSelectedExpressionIndex] = useState<number | null>(null);
@@ -17,7 +21,8 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentRound, setCurrentRound] = useState(1);
-  const [maxRounds] = useState(3);
+  const [showWinAnimation, setShowWinAnimation] = useState(false);
+  const [showLoseOverlay, setShowLoseOverlay] = useState(false);
 
   const fetchNewIdiom = async () => {
     try {
@@ -40,6 +45,12 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
     fetchNewIdiom();
   }, []);
 
+  const startNewGame = () => {
+    setCurrentRound(1);
+    setCurrentScore(0);
+    fetchNewIdiom();
+  };
+
   const handleExpressionSelect = (index: number) => {
     if (gameOver || selectedExpressionIndex !== null) return;
     
@@ -47,16 +58,17 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
     
     if (idiomItem && index === idiomItem.fake_index) {
       setCorrect(true);
-      setCurrentScore(prev => prev + 300);
+      const newScore = currentScore + 300;
+      setCurrentScore(newScore);
       setGameOver(true);
       
-      if (currentRound >= maxRounds) {
-        if (currentScore + 300 > enemyScore) {
-          setTimeout(() => onWin(), 1500);
-        } else {
-          setTimeout(() => onLose(), 1500);
-        }
+      // Vérifier si le score actuel dépasse le score ennemi
+      if (newScore > enemyScore) {
+        setTimeout(() => {
+          setShowWinAnimation(true);
+        }, 1500);
       } else {
+        // Continuer le jeu avec un nouvel idiome
         setTimeout(() => {
           setCurrentRound(prev => prev + 1);
           fetchNewIdiom();
@@ -64,18 +76,42 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
       }
     } else {
       setCorrect(false);
-      setCurrentScore(prev => Math.max(0, prev - 100));
+      const newScore = Math.max(0, currentScore - 100);
+      setCurrentScore(newScore);
       setGameOver(true);
       
-      if (currentRound >= maxRounds) {
-        setTimeout(() => onLose(), 1500);
+      // Si la réponse est incorrecte, continuer avec un nouvel idiome
+      // à moins que le score soit suffisant pour gagner
+      if (newScore > enemyScore) {
+        setTimeout(() => {
+          setShowWinAnimation(true);
+        }, 1500);
       } else {
         setTimeout(() => {
           setCurrentRound(prev => prev + 1);
           fetchNewIdiom();
-        }, 1500);
+        }, 2000);
       }
     }
+  };
+
+  const handleTimeUp = () => {
+    // Vérifier si le score est suffisant pour gagner
+    if (currentScore > enemyScore) {
+      setShowWinAnimation(true);
+    } else {
+      setShowLoseOverlay(true);
+    }
+  };
+
+  const handleNextRound = () => {
+    setShowWinAnimation(false);
+    onWin();
+  };
+
+  const handleReturnToMenu = () => {
+    setShowLoseOverlay(false);
+    onLose();
   };
 
   if (loading && !idiomItem) {
@@ -88,6 +124,10 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
 
   return (
     <div className="culture-game-container">
+      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
+      <Timer duration={timeLimit} onTimeUp={handleTimeUp} />
+      
       <div className="score-display">
         Score: {currentScore} / Enemy Score: {enemyScore}
       </div>
@@ -95,7 +135,7 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
       <div className="instructions">
         <h3>Find the Non-Existent Idiom!</h3>
         <p>One of these expressions is not a real English idiom. Can you spot the fake one?</p>
-        <p className="round-counter">Round {currentRound} of {maxRounds}</p>
+        <p className="round-counter">Round {currentRound}</p>
       </div>
       
       {idiomItem && (
@@ -123,7 +163,7 @@ function IdiomsGame({ enemyScore, onWin, onLose }: IdiomsGameProps) {
           {gameOver && (
             <div className="explanation-box">
               <p>{idiomItem.explanation}</p>
-              {currentRound < maxRounds && <p className="next-round-hint">Next round in a moment...</p>}
+              {currentScore <= enemyScore && <p className="next-round-hint">Next round in a moment...</p>}
             </div>
           )}
         </div>

@@ -1,56 +1,63 @@
 import { useEffect, useState } from 'react';
 import { getCultureFoodOrigins, FoodOriginItem } from '../services/gameService';
+import Timer from './Timer';
+import WinAnimation from './WinAnimation';
+import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
 
 interface FoodOriginsGameProps {
   enemyScore: number;
   onWin: () => void;
   onLose: () => void;
+  timeLimit?: number; // Temps limite en secondes (par défaut: 120)
 }
 
-function FoodOriginsGame({ enemyScore, onWin, onLose }: FoodOriginsGameProps) {
+function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOriginsGameProps) {
   const [currentScore, setCurrentScore] = useState(0);
   const [foodOrigins, setFoodOrigins] = useState<FoodOriginItem[]>([]);
   const [selectedDish, setSelectedDish] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Set<string>>(new Set());
-  const [attempts, setAttempts] = useState(0);
   const [shuffledDishes, setShuffledDishes] = useState<string[]>([]);
   const [shuffledCountries, setShuffledCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dishDescriptions, setDishDescriptions] = useState<Map<string, string>>(new Map());
+  const [showWinAnimation, setShowWinAnimation] = useState(false);
+  const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const data = await getCultureFoodOrigins(undefined, 5);
+      setFoodOrigins(data);
+      
+      const descriptions = new Map<string, string>();
+      data.forEach(item => {
+        descriptions.set(item.dish_name, item.description);
+      });
+      setDishDescriptions(descriptions);
+      
+      setShuffledDishes(data.map(item => item.dish_name).sort(() => Math.random() - 0.5));
+      setShuffledCountries(data.map(item => item.origin_country).sort(() => Math.random() - 0.5));
+      
+      setMatchedPairs(new Set());
+      setSelectedDish(null);
+      setSelectedCountry(null);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load game data');
+      setLoading(false);
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const data = await getCultureFoodOrigins(undefined, 5);
-        setFoodOrigins(data);
-        
-        const descriptions = new Map<string, string>();
-        data.forEach(item => {
-          descriptions.set(item.dish_name, item.description);
-        });
-        setDishDescriptions(descriptions);
-        
-        setShuffledDishes(data.map(item => item.dish_name).sort(() => Math.random() - 0.5));
-        setShuffledCountries(data.map(item => item.origin_country).sort(() => Math.random() - 0.5));
-        
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load game data');
-        setLoading(false);
-        console.error(err);
-      }
-    };
-
     fetchData();
   }, []);
 
   const handleSelection = (item: string, type: 'dish' | 'country') => {
     if (matchedPairs.has(item)) return;
-
     if (type === 'dish') {
       setSelectedDish(item);
       setSelectedCountry(null);
@@ -58,7 +65,6 @@ function FoodOriginsGame({ enemyScore, onWin, onLose }: FoodOriginsGameProps) {
       setSelectedCountry(item);
       setSelectedDish(null);
     }
-
     if ((type === 'dish' && selectedCountry) || (type === 'country' && selectedDish)) {
       const dish = type === 'dish' ? item : selectedDish;
       const country = type === 'country' ? item : selectedCountry;
@@ -66,7 +72,6 @@ function FoodOriginsGame({ enemyScore, onWin, onLose }: FoodOriginsGameProps) {
       const isMatch = foodOrigins.some(
         food => food.dish_name === dish && food.origin_country === country
       );
-
       if (isMatch) {
         const newMatchedPairs = new Set(matchedPairs);
         newMatchedPairs.add(dish as string);
@@ -74,20 +79,20 @@ function FoodOriginsGame({ enemyScore, onWin, onLose }: FoodOriginsGameProps) {
         setMatchedPairs(newMatchedPairs);
         setCurrentScore(prevScore => prevScore + 200);
         
+        // Vérifier si tous les plats ont été associés
         if (newMatchedPairs.size === foodOrigins.length * 2) {
+          // Vérifier si le score est suffisant pour gagner
           if (currentScore + 200 > enemyScore) {
-            onWin();
+            setTimeout(() => {
+              setShowWinAnimation(true);
+            }, 500);
           } else {
-            onLose();
+            // Recharger le jeu avec un nouveau set de plats
+            fetchData();
           }
         }
       } else {
-        setAttempts(prev => prev + 1);
         setCurrentScore(prevScore => Math.max(0, prevScore - 50));
-        
-        if (attempts >= 5) {
-          onLose();
-        }
       }
       
       setSelectedDish(null);
@@ -100,6 +105,25 @@ function FoodOriginsGame({ enemyScore, onWin, onLose }: FoodOriginsGameProps) {
     return dish ? dish.origin_country : '';
   };
 
+  const handleTimeUp = () => {
+    // Vérifier si le score est suffisant pour gagner
+    if (currentScore > enemyScore) {
+      setShowWinAnimation(true);
+    } else {
+      setShowLoseOverlay(true);
+    }
+  };
+
+  const handleNextRound = () => {
+    setShowWinAnimation(false);
+    onWin();
+  };
+
+  const handleReturnToMenu = () => {
+    setShowLoseOverlay(false);
+    onLose();
+  };
+
   if (loading) {
     return <div className="culture-game-container">Loading game data...</div>;
   }
@@ -110,13 +134,17 @@ function FoodOriginsGame({ enemyScore, onWin, onLose }: FoodOriginsGameProps) {
 
   return (
     <div className="culture-game-container">
+      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
+      <Timer duration={timeLimit} onTimeUp={handleTimeUp} />
+
       <div className="score-display">
         Score: {currentScore} / Enemy Score: {enemyScore}
       </div>
       
       <div className="instructions">
         <h3>Match dishes with their countries of origin!</h3>
-        <p>Click a dish and then its country of origin to make a match. You have {5 - attempts} attempts remaining.</p>
+        <p>Click a dish and then its country of origin to make a match.</p>
       </div>
       
       <div className="food-origins-game">
