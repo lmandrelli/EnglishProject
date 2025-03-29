@@ -9,6 +9,7 @@ import FoodOriginsGame from "../components/FoodOriginsGame";
 import IdiomsGame from "../components/IdiomsGame";
 import SynonymMatchGame from "../components/SynonymMatchGame";
 import PhrasalVerbGame from "../components/PhrasalVerbGame";
+import WordCompletionGame from "../components/WordCompletionGame";
 
 type GameMode = {
   id: string;
@@ -268,6 +269,17 @@ function Game() {
           {gameState.mode?.id === 'verb_combinations' && (
             <div className="game-container">
               <PhrasalVerbGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+                timeLimit={60}
+              />
+            </div>
+          )}
+
+          {gameState.mode?.id === 'word_completion' && (
+            <div className="game-container">
+              <WordCompletionGame
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
