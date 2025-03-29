@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getVocabularyCrossword } from '../services/gameService';
 import Timer from './Timer';
 import WinAnimation from './WinAnimation';
+import LoseOverlay from './LoseOverlay';
 import './CrosswordGame.css';
 
 interface Word {
@@ -215,6 +216,7 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
+  const [showLoseOverlay, setShowLoseOverlay] = useState(false);
 
   const isCompletedCell = (x: number, y: number): boolean => {
     const cellCompletedWords = words.filter(word => {
@@ -475,12 +477,18 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   };
 
   const handleTimeUp = () => {
+    setShowLoseOverlay(true);
+  };
+
+  const handleReturnToMenu = () => {
+    setShowLoseOverlay(false);
     onLose();
   };
 
   return (
     <div className="crossword-game">
       {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
       <Timer duration={timeLimit} onTimeUp={handleTimeUp} />
       <div className="score-display">
         Score: {currentScore} / Enemy Score: {enemyScore}

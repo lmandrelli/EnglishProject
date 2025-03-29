@@ -170,7 +170,7 @@ function Game() {
   };
 
   const handleGameLose = () => {
-    setGameState({ mode: null, inProgress: false });
+    navigate("/main-menu");
   };
 
   return (
@@ -209,7 +209,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
-                timeLimit={180}
+                timeLimit={10}
               />
             </div>
           )}
