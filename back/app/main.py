@@ -35,5 +35,5 @@ async def protected_route(user=Depends(get_current_active_user)):
 
 @app.on_event("startup")
 async def startup_event():
-    init_game_data()
+    init_game_data(force_update=True)
     print("Application démarrée et données initialisées")
