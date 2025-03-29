@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react';
-import { getCultureRegionalVariants, RegionalVariantItem } from '../services/gameService';
+import { getVocabularySynonyms, SynonymMatchItem } from '../services/gameService';
 import Timer from './Timer';
 import WinAnimation from './WinAnimation';
 import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
 
-interface RegionalVariantsGameProps {
+interface SynonymMatchGameProps {
   enemyScore: number;
   onWin: () => void;
   onLose: () => void;
-  timeLimit?: number; // Time limit in seconds (default: 120)
+  timeLimit?: number;
 }
 
-function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: RegionalVariantsGameProps) {
+function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: SynonymMatchGameProps) {
   const [currentScore, setCurrentScore] = useState(0);
-  const [regionalVariants, setRegionalVariants] = useState<RegionalVariantItem[]>([]);
+  const [synonymPairs, setSynonymPairs] = useState<SynonymMatchItem[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<number>(timeLimit);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<Set<string>>(new Set());
-  const [shuffledUK, setShuffledUK] = useState<string[]>([]);
-  const [shuffledUS, setShuffledUS] = useState<string[]>([]);
+  const [shuffledWords, setShuffledWords] = useState<string[]>([]);
+  const [shuffledSynonyms, setShuffledSynonyms] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
@@ -29,11 +29,11 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
   const fetchData = async () => {
     try {
       setLoading(true);
-      const data = await getCultureRegionalVariants(undefined, 5);
-      setRegionalVariants(data);
+      const data = await getVocabularySynonyms(undefined, 5);
+      setSynonymPairs(data);
       
-      setShuffledUK(data.map(item => item.uk_word).sort(() => Math.random() - 0.5));
-      setShuffledUS(data.map(item => item.us_word).sort(() => Math.random() - 0.5));
+      setShuffledWords(data.map(item => item.word).sort(() => Math.random() - 0.5));
+      setShuffledSynonyms(data.map(item => item.synonym).sort(() => Math.random() - 0.5));
       
       setMatchedPairs(new Set());
       setSelectedWord(null);
@@ -50,32 +50,32 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
     fetchData();
   }, []);
 
-  const handleWordSelect = (word: string, side: 'uk' | 'us') => {
+  const handleWordSelect = (word: string, side: 'word' | 'synonym') => {
     if (matchedPairs.has(word)) return;
-    if (side === 'uk') {
+    if (side === 'word') {
       setSelectedWord(word);
       setSelectedMatch(null);
     } else {
       setSelectedMatch(word);
       setSelectedWord(null);
     }
-    if ((side === 'uk' && selectedMatch) || (side === 'us' && selectedWord)) {
-      const ukWord = side === 'uk' ? word : selectedWord;
-      const usWord = side === 'us' ? word : selectedMatch;
+    if ((side === 'word' && selectedMatch) || (side === 'synonym' && selectedWord)) {
+      const baseWord = side === 'word' ? word : selectedWord;
+      const synonymWord = side === 'synonym' ? word : selectedMatch;
       
-      const isMatch = regionalVariants.some(
-        item => item.uk_word === ukWord && item.us_word === usWord
+      const isMatch = synonymPairs.some(
+        item => item.word === baseWord && item.synonym === synonymWord
       );
       if (isMatch) {
         const newMatchedPairs = new Set(matchedPairs);
-        newMatchedPairs.add(ukWord as string);
-        newMatchedPairs.add(usWord as string);
+        newMatchedPairs.add(baseWord as string);
+        newMatchedPairs.add(synonymWord as string);
         setMatchedPairs(newMatchedPairs);
-        // Find the matched item to get its difficulty level
-        const matchedItem = regionalVariants.find(
-          item => item.uk_word === ukWord && item.us_word === usWord
+        
+        const matchedItem = synonymPairs.find(
+          item => item.word === baseWord && item.synonym === synonymWord
         );
-        // Score based on difficulty level
+        
         let difficultyScore;
         if (matchedItem?.difficulty === 1) {
           difficultyScore = 100;
@@ -86,15 +86,12 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
         }
         setCurrentScore(prevScore => prevScore + difficultyScore);
         
-        // Vérifier si toutes les paires ont été associées
-        if (newMatchedPairs.size === regionalVariants.length * 2) {
-          // Vérifier si le score est suffisant pour gagner
+        if (newMatchedPairs.size === synonymPairs.length * 2) {
           if (currentScore + difficultyScore > enemyScore) {
             setTimeout(() => {
               setShowWinAnimation(true);
             }, 500);
           } else {
-            // Recharger le jeu avec un nouveau set de mots
             fetchData();
           }
         }
@@ -107,15 +104,7 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
     }
   };
 
-  const getMeaning = (word: string): string => {
-    const variant = regionalVariants.find(
-      item => item.uk_word === word || item.us_word === word
-    );
-    return variant ? variant.meaning : '';
-  };
-
   const handleTimeUp = () => {
-    // Vérifier si le score est suffisant pour gagner
     if (currentScore > enemyScore) {
       setShowWinAnimation(true);
     } else {
@@ -157,47 +146,39 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
       </div>
       
       <div className="instructions">
-        <h3>Match British English words with their American English equivalents!</h3>
+        <h3>Match words with their synonyms!</h3>
         <p>Click a word from each column to make a match.</p>
       </div>
       
-      <div className="regional-variants-game">
-        <div className="column-header uk">
-          <div className="flag uk-flag"></div>
-          <h3>British English</h3>
+      <div className="regional-variants-game synonym-match-game">
+        <div className="column-header">
+          <h3>Words</h3>
         </div>
         
-        <div className="column-header us">
-          <div className="flag us-flag"></div>
-          <h3>American English</h3>
+        <div className="column-header">
+          <h3>Synonyms</h3>
         </div>
         
-        <div className="words-column uk-words">
-          {shuffledUK.map((word, index) => (
+        <div className="words-column">
+          {shuffledWords.map((word, index) => (
             <div 
-              key={`uk-${index}`}
+              key={`word-${index}`}
               className={`word-card ${matchedPairs.has(word) ? 'matched' : ''} ${selectedWord === word ? 'selected' : ''}`}
-              onClick={() => !matchedPairs.has(word) && handleWordSelect(word, 'uk')}
+              onClick={() => !matchedPairs.has(word) && handleWordSelect(word, 'word')}
             >
               {word}
-              {matchedPairs.has(word) && (
-                <div className="meaning-tooltip">{getMeaning(word)}</div>
-              )}
             </div>
           ))}
         </div>
         
-        <div className="words-column us-words">
-          {shuffledUS.map((word, index) => (
+        <div className="words-column">
+          {shuffledSynonyms.map((word, index) => (
             <div 
-              key={`us-${index}`}
+              key={`synonym-${index}`}
               className={`word-card ${matchedPairs.has(word) ? 'matched' : ''} ${selectedMatch === word ? 'selected' : ''}`}
-              onClick={() => !matchedPairs.has(word) && handleWordSelect(word, 'us')}
+              onClick={() => !matchedPairs.has(word) && handleWordSelect(word, 'synonym')}
             >
               {word}
-              {matchedPairs.has(word) && (
-                <div className="meaning-tooltip">{getMeaning(word)}</div>
-              )}
             </div>
           ))}
         </div>
@@ -206,4 +187,4 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
   );
 }
 
-export default RegionalVariantsGame;
+export default SynonymMatchGame;

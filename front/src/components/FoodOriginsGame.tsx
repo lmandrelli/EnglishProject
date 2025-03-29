@@ -17,6 +17,7 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
   const [foodOrigins, setFoodOrigins] = useState<FoodOriginItem[]>([]);
   const [selectedDish, setSelectedDish] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(timeLimit);
   const [matchedPairs, setMatchedPairs] = useState<Set<string>>(new Set());
   const [shuffledDishes, setShuffledDishes] = useState<string[]>([]);
   const [shuffledCountries, setShuffledCountries] = useState<string[]>([]);
@@ -100,7 +101,7 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
               setShowWinAnimation(true);
             }, 500);
           } else {
-            // Recharger le jeu avec un nouveau set de plats
+            // Recharger le jeu avec un nouveau set de plats sans réinitialiser le timer
             fetchData();
           }
         }
@@ -149,7 +150,12 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
     <div className="culture-game-container">
       {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
-      <Timer duration={timeLimit} onTimeUp={handleTimeUp} />
+      <Timer 
+        duration={timeLimit} 
+        initialTime={timeRemaining} 
+        onTimeUp={handleTimeUp}
+        onTimeChange={setTimeRemaining}
+      />
 
       <div className="score-display">
         Score: {currentScore} / Enemy Score: {enemyScore}

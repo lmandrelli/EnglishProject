@@ -4,26 +4,34 @@ import './Timer.css';
 interface TimerProps {
   duration: number; // Duration in seconds
   onTimeUp: () => void;
+  initialTime?: number; // Optional initial time value
+  onTimeChange?: (time: number) => void; // Callback for time updates
 }
 
-function Timer({ duration, onTimeUp }: TimerProps) {
-  const [timeLeft, setTimeLeft] = useState(duration);
+function Timer({ duration, onTimeUp, initialTime, onTimeChange }: TimerProps) {
+  const [timeLeft, setTimeLeft] = useState(initialTime ?? duration);
   const progress = (timeLeft / duration) * 100;
 
   useEffect(() => {
+    if (onTimeChange) {
+      onTimeChange(timeLeft);
+    }
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
+        const newTime = prevTime <= 1 ? 0 : prevTime - 1;
+        if (onTimeChange) {
+          onTimeChange(newTime);
+        }
+        if (newTime === 0) {
           clearInterval(timer);
           onTimeUp();
-          return 0;
         }
-        return prevTime - 1;
+        return newTime;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [duration, onTimeUp]);
+  }, [duration, onTimeUp, onTimeChange]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

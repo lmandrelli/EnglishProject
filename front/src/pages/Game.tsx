@@ -6,6 +6,7 @@ import CrosswordGame from "../components/CrosswordGame";
 import RegionalVariantsGame from "../components/RegionalVariantsGame";
 import FoodOriginsGame from "../components/FoodOriginsGame";
 import IdiomsGame from "../components/IdiomsGame";
+import SynonymMatchGame from "../components/SynonymMatchGame";
 
 type GameMode = {
   id: string;
@@ -243,6 +244,17 @@ function Game() {
           {gameState.mode?.id === 'expression_mastery' && (
             <div className="game-container">
               <IdiomsGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+                timeLimit={60}
+              />
+            </div>
+          )}
+
+          {gameState.mode?.id === 'word_matching' && (
+            <div className="game-container">
+              <SynonymMatchGame
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}

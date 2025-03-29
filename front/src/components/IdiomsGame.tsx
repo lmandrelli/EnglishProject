@@ -15,6 +15,7 @@ interface IdiomsGameProps {
 function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGameProps) {
   const [currentScore, setCurrentScore] = useState(0);
   const [idiomItem, setIdiomItem] = useState<IdiomItem | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>(timeLimit);
   const [selectedExpressionIndex, setSelectedExpressionIndex] = useState<number | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [correct, setCorrect] = useState(false);
@@ -135,7 +136,12 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
     <div className="culture-game-container">
       {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
-      <Timer duration={timeLimit} onTimeUp={handleTimeUp} />
+      <Timer 
+        duration={timeLimit} 
+        initialTime={timeRemaining}
+        onTimeUp={handleTimeUp}
+        onTimeChange={setTimeRemaining}
+      />
       
       <div className="score-display">
         Score: {currentScore} / Enemy Score: {enemyScore}
