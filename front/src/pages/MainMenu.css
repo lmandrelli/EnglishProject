@@ -23,7 +23,7 @@
 .game-logo {
   margin-bottom: 3rem;
   text-align: center;
-  animation: pulse 3s infinite ease-in-out;
+  animation: pulsemenu 20s infinite ease-in-out;
   margin-top: -2rem;
 }
 
@@ -81,7 +81,7 @@
 }
 
 /* Animations */
-@keyframes pulse {
+@keyframes pulsemenu {
   0% {
     text-shadow: 0 0 10px rgba(100, 181, 246, 0.7);
   }
