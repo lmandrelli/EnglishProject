@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getVocabularyCrossword } from '../services/gameService';
+import Timer from './Timer';
+import WinAnimation from './WinAnimation';
 import './CrosswordGame.css';
 
 interface Word {
@@ -23,6 +25,14 @@ interface CrosswordGameProps {
   enemyScore: number;
   onWin: () => void;
   onLose: () => void;
+  wordCount?: number;
+  timeLimit?: number; // Time limit in seconds (default: 180)
+}
+
+interface WordWithDefinition {
+  word: string;
+  definition: string;
+  difficulty: number;
 }
 
 const getPointsPerLetter = (difficulty: number): number => {
@@ -35,19 +45,14 @@ const getPointsPerLetter = (difficulty: number): number => {
 };
 
 const findIntersection = (placedWords: Word[], newWord: string): { startX: number; startY: number; direction: 'across' | 'down' } | null => {
-  // For each placed word
   for (const placedWord of placedWords) {
-    // For each letter in the placed word
-    for (let i = 0; i < placedWord.word.length; i++) {
-      // For each letter in the new word
-      for (let j = 0; j < newWord.length; j++) {
-        // If letters match
+    for (let i = 1; i < placedWord.word.length; i++) {
+      for (let j = 1; j < newWord.length; j++) {
         if (placedWord.word[i] === newWord[j]) {
           let startX = 0;
           let startY = 0;
           const direction = placedWord.direction === 'across' ? 'down' as const : 'across' as const;
 
-          // Calculate start position based on intersection
           if (placedWord.direction === 'across') {
             startX = placedWord.startX + i;
             startY = placedWord.startY - j;
@@ -56,30 +61,39 @@ const findIntersection = (placedWords: Word[], newWord: string): { startX: numbe
             startY = placedWord.startY + i;
           }
 
-          // Check if this placement would overlap with any existing words
           const isValidPlacement = !placedWords.some(word => {
-            for (let k = 0; k < newWord.length; k++) {
+            for (let k = -1; k <= newWord.length; k++) {
               const x = direction === 'across' ? startX + k : startX;
               const y = direction === 'down' ? startY + k : startY;
 
-              // Check if this position is used by another word with a different letter
-              const overlappingWord = placedWords.find(w => {
-                if (w === placedWord) return false;
-                if (w.direction === 'across') {
-                  return y === w.startY && x >= w.startX && x < w.startX + w.word.length &&
-                         w.word[x - w.startX] !== newWord[k];
-                } else {
-                  return x === w.startX && y >= w.startY && y < w.startY + w.word.length &&
-                         w.word[y - w.startY] !== newWord[k];
-                }
-              });
+              for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                  if (dx === 0 && dy === 0) continue;
+                  const checkX = x + dx;
+                  const checkY = y + dy;
 
-              if (overlappingWord) return true;
+                  const adjacentWord = placedWords.find(w => {
+                    if (w === placedWord) return false;
+                    if (w.direction === 'across') {
+                      return checkY === w.startY && 
+                             checkX >= w.startX && 
+                             checkX < w.startX + w.word.length &&
+                             !(y === w.startY && x === w.startX + i);
+                    } else {
+                      return checkX === w.startX && 
+                             checkY >= w.startY && 
+                             checkY < w.startY + w.word.length &&
+                             !(x === w.startX && y === w.startY + i);
+                    }
+                  });
+
+                  if (adjacentWord) return true;
+                }
+              }
             }
             return false;
           });
 
-          // If placement is valid, return it
           if (isValidPlacement) {
             return { startX, startY, direction };
           }
@@ -91,7 +105,6 @@ const findIntersection = (placedWords: Word[], newWord: string): { startX: numbe
 };
 
 const normalizeCoordinates = (words: Word[]): Word[] => {
-  // Find minimum x and y coordinates
   let minX = 0;
   let minY = 0;
   words.forEach(word => {
@@ -99,7 +112,6 @@ const normalizeCoordinates = (words: Word[]): Word[] => {
     minY = Math.min(minY, word.startY);
   });
 
-  // Shift all coordinates to be positive
   return words.map(word => ({
     ...word,
     startX: word.startX - minX,
@@ -107,22 +119,14 @@ const normalizeCoordinates = (words: Word[]): Word[] => {
   }));
 };
 
-interface WordWithDefinition {
-  word: string;
-  definition: string;
-  difficulty: number;
-}
-
-const findValidCrossword = (wordPool: WordWithDefinition[]): Word[] => {
+const findValidCrossword = (wordPool: WordWithDefinition[], targetWordCount: number): Word[] => {
   const result: Word[] = [];
   let number = 1;
 
-  // Try each word as the first word
   for (let i = 0; i < wordPool.length; i++) {
     result.length = 0;
     number = 1;
 
-    // Place first word horizontally
     result.push({
       ...wordPool[i],
       direction: 'across',
@@ -131,86 +135,75 @@ const findValidCrossword = (wordPool: WordWithDefinition[]): Word[] => {
       number: number++
     });
 
-    // Try to add remaining words
     let remainingWords = [...wordPool.slice(0, i), ...wordPool.slice(i + 1)];
     let validLayout = false;
 
-    // Try different combinations of remaining words
-    for (let j = 0; j < remainingWords.length; j++) {
-      const secondWord = remainingWords[j];
-      const intersection1 = findIntersection(result, secondWord.word);
+    const tryAddWord = (currentWords: Word[], remaining: WordWithDefinition[]): boolean => {
+      if (currentWords.length === targetWordCount) {
+        const acrossCount = currentWords.filter(w => w.direction === 'across').length;
+        return acrossCount >= Math.ceil(targetWordCount / 2);
+      }
+
+      const currentAcrossCount = currentWords.filter(w => w.direction === 'across').length;
+      const remainingWords = targetWordCount - currentWords.length;
+      const minAcrossNeeded = Math.ceil(targetWordCount / 2) - currentAcrossCount;
       
-      if (intersection1) {
-        result.push({
-          ...secondWord,
-          ...intersection1,
-          number: number++
-        });
+      for (let j = 0; j < remaining.length; j++) {
+        const nextWord = remaining[j];
+        const intersection = findIntersection(currentWords, nextWord.word);
 
-        const remainingForThird = remainingWords.filter((_, idx) => idx !== j);
-        
-        // Try to find a third word
-        for (let k = 0; k < remainingForThird.length; k++) {
-          const thirdWord = remainingForThird[k];
-          const intersection2 = findIntersection(result, thirdWord.word);
-
-          if (intersection2) {
-            result.push({
-              ...thirdWord,
-              ...intersection2,
-              number: number++
-            });
-
-            const remainingForFourth = remainingForThird.filter((_, idx) => idx !== k);
-
-            // Try to find a fourth word
-            for (let l = 0; l < remainingForFourth.length; l++) {
-              const fourthWord = remainingForFourth[l];
-              const intersection3 = findIntersection(result, fourthWord.word);
-
-              if (intersection3) {
-                result.push({
-                  ...fourthWord,
-                  ...intersection3,
-                  number: number++
-                });
-                validLayout = true;
-                break;
-              }
-            }
+        if (intersection) {
+          if (minAcrossNeeded > 0 && intersection.direction === 'down' && 
+              remainingWords - 1 < minAcrossNeeded) {
+            continue;
           }
-          
-          if (validLayout) break;
-          if (result.length > 2) result.length = 2; // Reset if third word didn't work
+
+          currentWords.push({
+            ...nextWord,
+            ...intersection,
+            number: number++
+          });
+
+          const newRemaining = remaining.filter((_, idx) => idx !== j);
+          if (tryAddWord(currentWords, newRemaining)) {
+            return true;
+          }
+
+          currentWords.pop();
+          number--;
         }
       }
-      
-      if (validLayout) break;
-      if (result.length > 1) result.length = 1; // Reset if second word didn't work
-    }
 
-    if (validLayout) break; // Found a valid layout with 4 words
+      return false;
+    };
+
+    validLayout = tryAddWord(result, remainingWords);
+    if (validLayout) break;
   }
 
-  if (result.length !== 4) {
-    throw new Error("Could not create a valid crossword layout with 4 words");
+  if (result.length !== targetWordCount) {
+    throw new Error(`Could not create a valid crossword layout with ${targetWordCount} words`);
   }
 
   return normalizeCoordinates(result);
 };
 
-const layoutCrossword = async (getNewWord: () => Promise<WordWithDefinition>): Promise<Word[]> => {
-  // Get a pool of words first
+const layoutCrossword = async (getNewWord: () => Promise<WordWithDefinition>, wordCount: number): Promise<Word[]> => {
   const wordPool: WordWithDefinition[] = [];
-  for (let i = 0; i < 15; i++) {
+  const usedWords = new Set<string>();
+
+  while (wordPool.length < wordCount) {
     const response = await getNewWord();
-    wordPool.push(response);
+    if (!usedWords.has(response.word.toLowerCase())) {
+      wordPool.push(response);
+      usedWords.add(response.word.toLowerCase());
+    }
   }
 
-  return findValidCrossword(wordPool);
+  return findValidCrossword(wordPool, wordCount);
 };
 
-function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
+function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 180 }: CrosswordGameProps) {
   const [currentScore, setCurrentScore] = useState(0);
   const [words, setWords] = useState<Word[]>([]);
   const [grid, setGrid] = useState<Cell[][]>([]);
@@ -219,11 +212,10 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
   const [currentDirection, setCurrentDirection] = useState<'across' | 'down' | null>(null);
   const [userInputs, setUserInputs] = useState<{ [key: string]: string }>({});
   const [completedWords, setCompletedWords] = useState<Set<string>>(new Set());
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showWinAnimation, setShowWinAnimation] = useState(false);
 
-  // Check if a cell belongs to a completed word
   const isCompletedCell = (x: number, y: number): boolean => {
     const cellCompletedWords = words.filter(word => {
       if (word.direction === 'across') {
@@ -236,13 +228,109 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
     return cellCompletedWords.some(word => completedWords.has(word.word));
   };
 
-  // Initialize new grid and words
+  const checkWordCompletion = (word: Word) => {
+    if (completedWords.has(word.word)) return false;
+
+    const isComplete = Array.from({ length: word.word.length }, (_, i) => {
+      const x = word.direction === 'across' ? word.startX + i : word.startX;
+      const y = word.direction === 'down' ? word.startY + i : word.startY;
+      return userInputs[`${x},${y}`] || '';
+    }).every(letter => letter !== '');
+
+    if (isComplete) {
+      const isValid = validateWord(word);
+      
+      if (isValid) {
+        setSelectedWord(null);
+        setCurrentCell(null);
+        setCurrentDirection(null);
+      } else {
+        // Reset word cells and mark them red
+        for (let i = 0; i < word.word.length; i++) {
+          const x = word.direction === 'across' ? word.startX + i : word.startX;
+          const y = word.direction === 'down' ? word.startY + i : word.startY;
+          const cellKey = `${x},${y}`;
+          setUserInputs(prev => {
+            const newInputs = { ...prev };
+            delete newInputs[cellKey];
+            return newInputs;
+          });
+
+          const cell = document.querySelector(`[data-position="${x},${y}"]`) as HTMLElement;
+          if (cell) {
+            cell.classList.add('incorrect');
+            setTimeout(() => cell.classList.remove('incorrect'), 1000);
+          }
+        }
+      }
+    }
+  };
+
+  const validateWord = (word: Word): boolean => {
+    const enteredWord = Array.from({ length: word.word.length }, (_, i) => {
+      const x = word.direction === 'across' ? word.startX + i : word.startX;
+      const y = word.direction === 'down' ? word.startY + i : word.startY;
+      return userInputs[`${x},${y}`] || '';
+    }).join('');
+
+    console.log('🔍 Validating word:', {
+      entered: enteredWord,
+      expected: word.word,
+      matches: enteredWord === word.word
+    });
+
+    if (enteredWord === word.word) {
+      const newCompleted = new Set(completedWords);
+      newCompleted.add(word.word);
+      setCompletedWords(newCompleted);
+
+      const points = word.word.length * getPointsPerLetter(word.difficulty);
+      const newScore = currentScore + points;
+      console.log('📈 Updating score:', {
+        points,
+        newScore,
+        difficulty: word.difficulty
+      });
+      setCurrentScore(newScore);
+
+      const newGrid = [...grid];
+      for (let i = 0; i < word.word.length; i++) {
+        const x = word.direction === 'across' ? word.startX + i : word.startX;
+        const y = word.direction === 'down' ? word.startY + i : word.startY;
+        newGrid[y][x].letter = word.word[i];
+      }
+      setGrid(newGrid);
+
+      if (newCompleted.size === words.length) {
+        console.log('🎯 All words completed!', {
+          finalScore: newScore,
+          enemyScore,
+          win: newScore >= enemyScore
+        });
+        if (newScore >= enemyScore) {
+          const gridElement = document.querySelector('.grid') as HTMLElement;
+          if (gridElement) {
+            gridElement.classList.add('winning-grid');
+          setTimeout(() => {
+            setShowWinAnimation(true);
+          }, 1000);
+          }
+        } else {
+          initializeNewPuzzle();
+        }
+      }
+
+      return true;
+    }
+    return false;
+  };
+
   const initializeNewPuzzle = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Define function to get new words with definitions
+      console.log('🔄 Initializing new puzzle');
       const getNewWord = async () => {
         const response = await getVocabularyCrossword();
         if (!response) throw new Error("Failed to fetch word");
@@ -253,12 +341,10 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
         };
       };
 
-      // Create layout for the crossword using word pool
-      const wordSet = await layoutCrossword(getNewWord);
-
+      const wordSet = await layoutCrossword(getNewWord, wordCount);
+      console.log('📝 Generated crossword layout:', wordSet);
       setWords(wordSet);
 
-      // Find grid dimensions (add 1 to ensure we have enough space)
       let maxX = 0;
       let maxY = 0;
       wordSet.forEach(word => {
@@ -268,12 +354,10 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
         maxY = Math.max(maxY, endY);
       });
 
-      // Create empty grid with active cell markers (add 1 to dimensions for safety)
       const newGrid: Cell[][] = Array(maxY + 1).fill(null).map(() => 
         Array(maxX + 1).fill(null).map(() => ({ letter: '', isActive: false }))
       );
 
-      // Mark active cells and add numbers
       wordSet.forEach(word => {
         for (let i = 0; i < word.word.length; i++) {
           const x = word.direction === 'across' ? word.startX + i : word.startX;
@@ -292,6 +376,7 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
       setSelectedWord(null);
       setCurrentCell(null);
       setCurrentDirection(null);
+      console.log('✨ New puzzle initialized');
     } catch (err) {
       console.error("Error initializing puzzle:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -306,6 +391,11 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
 
   const handleWordSelect = (word: Word) => {
     if (!completedWords.has(word.word)) {
+      console.log('👆 Word selected:', {
+        word: word.word,
+        direction: word.direction,
+        number: word.number
+      });
       setSelectedWord(word);
       setCurrentCell({ x: word.startX, y: word.startY });
       setCurrentDirection(word.direction);
@@ -314,7 +404,6 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
 
   const handleCellClick = (x: number, y: number) => {
     if (grid[y][x].isActive && !isCompletedCell(x, y)) {
-      // Find word that contains this cell
       const word = words.find(w => {
         if (w.direction === 'across') {
           return y === w.startY && x >= w.startX && x < w.startX + w.word.length;
@@ -331,45 +420,6 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
     }
   };
 
-  // Check if a word is complete and validate it
-  const validateWord = (word: Word): boolean => {
-    const enteredWord = Array.from({ length: word.word.length }, (_, i) => {
-      const x = word.direction === 'across' ? word.startX + i : word.startX;
-      const y = word.direction === 'down' ? word.startY + i : word.startY;
-      return userInputs[`${x},${y}`] || '';
-    }).join('');
-
-    if (enteredWord === word.word) {
-      const newCompleted = new Set(completedWords);
-      newCompleted.add(word.word);
-      setCompletedWords(newCompleted);
-
-      // Calculate score based on difficulty
-      const points = word.word.length * getPointsPerLetter(word.difficulty);
-      setCurrentScore(prev => prev + points);
-
-      // Update grid with correct word
-      const newGrid = [...grid];
-      for (let i = 0; i < word.word.length; i++) {
-        const x = word.direction === 'across' ? word.startX + i : word.startX;
-        const y = word.direction === 'down' ? word.startY + i : word.startY;
-        newGrid[y][x].letter = word.word[i];
-      }
-      setGrid(newGrid);
-
-      if (newCompleted.size === words.length) {
-        if (currentScore > enemyScore) {
-          onWin();
-        } else {
-          initializeNewPuzzle();
-        }
-      }
-
-      return true;
-    }
-    return false;
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>, x: number, y: number) => {
     if (!grid[y][x].isActive || isCompletedCell(x, y) || !selectedWord || completedWords.has(selectedWord.word)) return;
 
@@ -377,25 +427,31 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
       const letter = e.key.toUpperCase();
       const cellKey = `${x},${y}`;
       
-      setUserInputs(prev => ({ ...prev, [cellKey]: letter }));
+      console.log('⌨️ Key pressed:', {
+        letter,
+        position: { x, y },
+        word: selectedWord.word,
+        currentCompletion: userInputs
+      });
 
-      // Move to next cell or validate word if it's the last letter
+      setUserInputs(prev => {
+        const newInputs = { ...prev, [cellKey]: letter };
+        
+        // After updating inputs, check word completion
+        setTimeout(() => {
+          checkWordCompletion(selectedWord);
+        }, 0);
+        
+        return newInputs;
+      });
+
+      // Move to next cell
       if (currentDirection) {
         const nextX = currentDirection === 'across' ? x + 1 : x;
         const nextY = currentDirection === 'down' ? y + 1 : y;
-        const isLastCell = (currentDirection === 'across' && nextX === selectedWord.startX + selectedWord.word.length) ||
-                          (currentDirection === 'down' && nextY === selectedWord.startY + selectedWord.word.length);
 
-        if (isLastCell) {
-          // Try to validate the word
-          const isValid = validateWord(selectedWord);
-          if (!isValid) {
-            onLose();
-          }
-          setSelectedWord(null);
-          setCurrentCell(null);
-          setCurrentDirection(null);
-        } else if (nextX < grid[0].length && nextY < grid.length && grid[nextY][nextX].isActive) {
+        // Only move to next cell if within grid bounds and cell is active
+        if (nextX < grid[0].length && nextY < grid.length && grid[nextY][nextX].isActive) {
           setCurrentCell({ x: nextX, y: nextY });
         }
       }
@@ -413,8 +469,19 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
     }
   }, [currentCell]);
 
+  const handleNextRound = () => {
+    setShowWinAnimation(false);
+    onWin();
+  };
+
+  const handleTimeUp = () => {
+    onLose();
+  };
+
   return (
     <div className="crossword-game">
+      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      <Timer duration={timeLimit} onTimeUp={handleTimeUp} />
       <div className="score-display">
         Score: {currentScore} / Enemy Score: {enemyScore}
       </div>
@@ -430,42 +497,41 @@ function CrosswordGame({ enemyScore, onWin, onLose }: CrosswordGameProps) {
         <div className="loading">Loading puzzle...</div>
       ) : (
         <div className="game-area">
-        <div className="grid">
-          {grid.map((row, y) => (
-            <div key={y} className="grid-row">
-              {row.map((cell, x) => (
-                <div 
-                  key={`${x}-${y}`} 
-                  className={`grid-cell ${cell.isActive ? 'active' : ''} ${
-                    currentCell?.x === x && currentCell?.y === y ? 'selected' : ''
-                  } ${isCompletedCell(x, y) ? 'completed' : ''}`}
-                  onClick={() => handleCellClick(x, y)}
-                  onKeyDown={(e) => handleKeyPress(e, x, y)}
-                  tabIndex={cell.isActive && !isCompletedCell(x, y) ? 0 : -1}
-                  data-position={`${x},${y}`}
-                >
-                  {cell.number && <span className="cell-number">{cell.number}</span>}
-                  {cell.isActive ? (userInputs[`${x},${y}`] || cell.letter) : null}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+          <div className="grid">
+            {grid.map((row, y) => (
+              <div key={y} className="grid-row">
+                {row.map((cell, x) => (
+                  <div 
+                    key={`${x}-${y}`} 
+                    className={`grid-cell ${cell.isActive ? 'active' : ''} ${
+                      currentCell?.x === x && currentCell?.y === y ? 'selected' : ''
+                    } ${isCompletedCell(x, y) ? 'completed' : ''}`}
+                    onClick={() => handleCellClick(x, y)}
+                    onKeyDown={(e) => handleKeyPress(e, x, y)}
+                    tabIndex={cell.isActive && !isCompletedCell(x, y) ? 0 : -1}
+                    data-position={`${x},${y}`}
+                  >
+                    {cell.number && <span className="cell-number">{cell.number}</span>}
+                    {cell.isActive ? (userInputs[`${x},${y}`] || cell.letter) : null}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
 
-        <div className="clues">
-          <h3>Clues</h3>
-          {words.map((word, index) => (
-            <div
-              key={index}
-              className={`clue ${completedWords.has(word.word) ? 'completed' : ''} ${selectedWord === word ? 'selected' : ''}`}
-              onClick={() => handleWordSelect(word)}
-            >
-              <span className="direction">{word.number}. {word.direction.toUpperCase()}</span>
-              <span className="definition">{word.definition}</span>
-            </div>
-          ))}
-        </div>
-
+          <div className="clues">
+            <h3>Clues</h3>
+            {words.map((word, index) => (
+              <div
+                key={index}
+                className={`clue ${completedWords.has(word.word) ? 'completed' : ''} ${selectedWord === word ? 'selected' : ''}`}
+                onClick={() => handleWordSelect(word)}
+              >
+                <span className="direction">{word.number}. {word.direction.toUpperCase()}</span>
+                <span className="definition">{word.definition}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

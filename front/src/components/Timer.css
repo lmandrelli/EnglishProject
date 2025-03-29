@@ -1,0 +1,47 @@
+.timer {
+  width: 100%;
+  max-width: 400px;
+  margin: 1rem auto;
+  padding: 0.5rem;
+  background-color: #f5f6fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timer-label {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #2d3436;
+  font-family: monospace;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #dfe6e9;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 1s linear, background-color 1s linear;
+  border-radius: 6px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Animation for when time is running low (below 20%) */
+@keyframes pulse {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(0.98); }
+  100% { transform: scaleX(1); }
+}
+
+.progress-fill[style*="width: 20"] {
+  animation: pulse 0.5s ease-in-out infinite;
+}
