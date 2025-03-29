@@ -7,6 +7,7 @@ import RegionalVariantsGame from "../components/RegionalVariantsGame";
 import FoodOriginsGame from "../components/FoodOriginsGame";
 import IdiomsGame from "../components/IdiomsGame";
 import SynonymMatchGame from "../components/SynonymMatchGame";
+import PhrasalVerbGame from "../components/PhrasalVerbGame";
 
 type GameMode = {
   id: string;
@@ -21,7 +22,7 @@ const GAME_MODES = {
     { id: 'word_matching', name: 'Word Matching', description: 'Match words with their synonyms' }
   ],
   p4: [
-    { id: 'error_detection', name: 'Error Detection', description: 'Find the grammatical error' },
+    { id: 'error_detection', name: 'Error Detection', description: 'Find the wrong word' },
     { id: 'verb_forms', name: 'Verb Forms', description: 'Practice verb conjugations' },
     { id: 'verb_combinations', name: 'Verb Combinations', description: 'Master phrasal verbs' }
   ],
@@ -255,6 +256,17 @@ function Game() {
           {gameState.mode?.id === 'word_matching' && (
             <div className="game-container">
               <SynonymMatchGame
+                enemyScore={selectedEnemy.score}
+                onWin={handleGameWin}
+                onLose={handleGameLose}
+                timeLimit={60}
+              />
+            </div>
+          )}
+
+          {gameState.mode?.id === 'verb_combinations' && (
+            <div className="game-container">
+              <PhrasalVerbGame
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
