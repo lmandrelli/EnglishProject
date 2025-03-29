@@ -35,5 +35,12 @@ async def protected_route(user=Depends(get_current_active_user)):
 
 @app.on_event("startup")
 async def startup_event():
+    from pymongo import MongoClient
+    client = MongoClient("mongodb://localhost:27017")
+    db = client["celestial_wordforge"]
+    # Supprimez toutes les collections
+    for collection in db.list_collection_names():
+        db[collection].drop()
+    # Puis initialisez
     init_game_data(force_update=True)
-    print("Application démarrée et données initialisées")
+    print("Application démarrée et données réinitialisées")
