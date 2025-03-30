@@ -25,6 +25,14 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
   const [currentRound, setCurrentRound] = useState(1);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
+
+  const handleVictory = () => {
+    if (!hasWon) {
+      setHasWon(true);
+      setShowWinAnimation(true);
+    }
+  };
 
   const fetchNewSentence = async () => {
     try {
@@ -74,9 +82,7 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
       setGameOver(true);
       
       if (newScore > enemyScore) {
-        setTimeout(() => {
-          setShowWinAnimation(true);
-        }, 1500);
+        setTimeout(handleVictory, 1500);
       } else {
         setTimeout(() => {
           setCurrentRound(prev => prev + 1);
@@ -90,9 +96,7 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
       setGameOver(true);
       
       if (newScore > enemyScore) {
-        setTimeout(() => {
-          setShowWinAnimation(true);
-        }, 1500);
+        setTimeout(handleVictory, 1500);
       } else {
         setTimeout(() => {
           setCurrentRound(prev => prev + 1);
@@ -103,9 +107,9 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
   };
 
   const handleTimeUp = () => {
-    if (currentScore > enemyScore) {
-      setShowWinAnimation(true);
-    } else {
+    if (!hasWon && currentScore > enemyScore) {
+      handleVictory();
+    } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
   };

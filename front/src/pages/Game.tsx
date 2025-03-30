@@ -163,13 +163,13 @@ function Game() {
   };
 
   const handleHomeClick = () => {
+    resetGameState();
     navigate("/");
   };
 
-  const handleNextRound = () => {
+  const resetGameState = () => {
     setSelectedEnemy(null);
     setGameState({ mode: null, inProgress: false });
-    setCurrentRound(prev => prev + 1);
   };
 
   const handleModeSelect = (mode: GameMode) => {
@@ -179,8 +179,13 @@ function Game() {
   const [totalScore, setTotalScore] = useState(0);
 
   const handleGameWin = (gameScore: number) => {
+    console.log(`Game won at round ${currentRound}, incrementing to ${currentRound + 1}`);
     setTotalScore(prev => prev + gameScore);
-    handleNextRound();
+    setCurrentRound(prev => {
+      console.log(`Setting round from ${prev} to ${prev + 1}`);
+      return prev + 1;
+    });
+    resetGameState();
   };
 
   const handleGameLose = async () => {

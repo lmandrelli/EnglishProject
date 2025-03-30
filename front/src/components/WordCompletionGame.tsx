@@ -24,6 +24,15 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
   const [error, setError] = useState<string | null>(null);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number>(timeLimit);
+  const [hasWon, setHasWon] = useState(false);
+
+  const handleVictory = () => {
+    if (!hasWon) {
+      setHasWon(true);
+      setShowWinAnimation(true);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -66,9 +75,7 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
         // Check if all gaps are filled
         if (Object.keys(newCompletedGaps).length === gameData.words.length) {
           if (newScore > enemyScore) {
-            setTimeout(() => {
-              setShowWinAnimation(true);
-            }, 500);
+            setTimeout(handleVictory, 500);
           } else {
             fetchData();
           }
@@ -82,9 +89,9 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
   };
 
   const handleTimeUp = () => {
-    if (currentScore > enemyScore) {
-      setShowWinAnimation(true);
-    } else {
+    if (!hasWon && currentScore > enemyScore) {
+      handleVictory();
+    } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
   };
@@ -137,7 +144,9 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
       <Timer 
         duration={timeLimit}
+        initialTime={timeRemaining}
         onTimeUp={handleTimeUp}
+        onTimeChange={setTimeRemaining}
       />
       
       <div className="score-display">

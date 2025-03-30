@@ -27,6 +27,14 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
   const [dishDescriptions, setDishDescriptions] = useState<Map<string, string>>(new Map());
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
+
+  const handleVictory = () => {
+    if (!hasWon) {
+      setHasWon(true);
+      setShowWinAnimation(true);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -98,9 +106,7 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
         if (newMatchedPairs.size === foodOrigins.length * 2) {
           // Vérifier si le score est suffisant pour gagner
           if (currentScore + difficultyScore > enemyScore) {
-            setTimeout(() => {
-              setShowWinAnimation(true);
-            }, 500);
+            setTimeout(handleVictory, 500);
           } else {
             // Recharger le jeu avec un nouveau set de plats sans réinitialiser le timer
             fetchData();
@@ -121,10 +127,9 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
   };
 
   const handleTimeUp = () => {
-    // Vérifier si le score est suffisant pour gagner
-    if (currentScore > enemyScore) {
-      setShowWinAnimation(true);
-    } else {
+    if (!hasWon && currentScore > enemyScore) {
+      handleVictory();
+    } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
   };

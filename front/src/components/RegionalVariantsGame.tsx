@@ -26,6 +26,14 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
   const [error, setError] = useState<string | null>(null);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
+
+  const handleVictory = () => {
+    if (!hasWon) {
+      setHasWon(true);
+      setShowWinAnimation(true);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -91,9 +99,7 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
         if (newMatchedPairs.size === regionalVariants.length * 2) {
           // Vérifier si le score est suffisant pour gagner
           if (currentScore + difficultyScore > enemyScore) {
-            setTimeout(() => {
-              setShowWinAnimation(true);
-            }, 500);
+            setTimeout(handleVictory, 500);
           } else {
             // Recharger le jeu avec un nouveau set de mots
             fetchData();
@@ -116,10 +122,9 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
   };
 
   const handleTimeUp = () => {
-    // Vérifier si le score est suffisant pour gagner
-    if (currentScore > enemyScore) {
-      setShowWinAnimation(true);
-    } else {
+    if (!hasWon && currentScore > enemyScore) {
+      handleVictory();
+    } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
   };

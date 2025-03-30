@@ -26,6 +26,14 @@ function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Synony
   const [error, setError] = useState<string | null>(null);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
+
+  const handleVictory = () => {
+    if (!hasWon) {
+      setHasWon(true);
+      setShowWinAnimation(true);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -89,9 +97,7 @@ function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Synony
         
         if (newMatchedPairs.size === synonymPairs.length * 2) {
           if (currentScore + difficultyScore > enemyScore) {
-            setTimeout(() => {
-              setShowWinAnimation(true);
-            }, 500);
+            setTimeout(handleVictory, 500);
           } else {
             fetchData();
           }
@@ -106,9 +112,9 @@ function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Synony
   };
 
   const handleTimeUp = () => {
-    if (currentScore > enemyScore) {
-      setShowWinAnimation(true);
-    } else {
+    if (!hasWon && currentScore > enemyScore) {
+      handleVictory();
+    } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
   };

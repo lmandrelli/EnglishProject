@@ -218,6 +218,14 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   const [error, setError] = useState<string | null>(null);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
+
+  const handleVictory = () => {
+    if (!hasWon) {
+      setHasWon(true);
+      setShowWinAnimation(true);
+    }
+  };
 
 const isCompletedCell = (x: number, y: number): boolean => {
     const cellCompletedWords = words.filter(word => {
@@ -317,19 +325,17 @@ const isCompletedCell = (x: number, y: number): boolean => {
     setCurrentCell(null);
     setCurrentDirection(null);
 
-    if (newCompleted.size === words.length) {
-      if (newScore >= enemyScore) {
-        const gridElement = document.querySelector('.grid') as HTMLElement;
-        if (gridElement) {
-          gridElement.classList.add('winning-grid');
-          setTimeout(() => {
-            setShowWinAnimation(true);
-          }, 1000);
-        }
-      } else {
-        initializeNewPuzzle();
-      }
-    }
+            if (newCompleted.size === words.length) {
+              if (newScore >= enemyScore) {
+                const gridElement = document.querySelector('.grid') as HTMLElement;
+                if (gridElement) {
+                  gridElement.classList.add('winning-grid');
+                  setTimeout(() => handleVictory(), 1000);
+                }
+              } else {
+                initializeNewPuzzle();
+              }
+            }
   };
 
   const resetIncorrectWord = (word: Word) => {
@@ -535,9 +541,7 @@ const isCompletedCell = (x: number, y: number): boolean => {
                 const gridElement = document.querySelector('.grid') as HTMLElement;
                 if (gridElement) {
                   gridElement.classList.add('winning-grid');
-                  setTimeout(() => {
-                    setShowWinAnimation(true);
-                  }, 1000);
+                  setTimeout(() => handleVictory(), 1000);
                 }
               } else {
                 initializeNewPuzzle();
@@ -739,18 +743,13 @@ const isCompletedCell = (x: number, y: number): boolean => {
   };
 
   const handleTimeUp = () => {
-    // Vérifier le score avant d'afficher le menu approprié
-    if (currentScore >= enemyScore) {
-      // Si le score est suffisant, afficher l'animation de victoire
+    if (!hasWon && currentScore >= enemyScore) {
       const gridElement = document.querySelector('.grid') as HTMLElement;
       if (gridElement) {
         gridElement.classList.add('winning-grid');
-        setTimeout(() => {
-          setShowWinAnimation(true);
-        }, 1000);
+        setTimeout(() => handleVictory(), 1000);
       }
-    } else {
-      // Sinon, afficher le menu de défaite
+    } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
   };
