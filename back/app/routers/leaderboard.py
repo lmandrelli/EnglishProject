@@ -10,15 +10,20 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+from pydantic import BaseModel
+
+class ScoreSubmission(BaseModel):
+    score: int
+
 @router.post("/submit")
 async def submit_score(
-    score: int,
+    submission: ScoreSubmission,
     current_user: User = Depends(get_current_active_user)
 ):
     success = leaderboard_service.submit_score(
         user_id=current_user.id,
         username=current_user.username,
-        score=score
+        score=submission.score
     )
     return {"success": success}
 

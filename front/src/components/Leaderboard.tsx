@@ -55,7 +55,7 @@ function Leaderboard() {
           >
             <div className="rank">{index + 1}</div>
             <div className="username">{score.username}</div>
-            <div className="score">{score.score}</div>
+            <div className="user-score">{score.score}</div>
           </div>
         ))}
         {topScores.length === 0 && (

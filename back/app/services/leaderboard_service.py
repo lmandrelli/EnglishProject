@@ -3,6 +3,13 @@ from bson import ObjectId
 from ..database.mongodb import db
 from ..models.leaderboard import LeaderboardEntry
 
+def convert_to_object_id(id_str: str) -> ObjectId:
+    """Convert string ID to MongoDB ObjectId, handling potential invalid formats"""
+    try:
+        return ObjectId(id_str)
+    except:
+        return None
+
 def submit_score(user_id: str, username: str, score: int) -> bool:
     """
     Submit a new score for a user. If the user already has a score,
@@ -11,7 +18,7 @@ def submit_score(user_id: str, username: str, score: int) -> bool:
     collection = db["leaderboard"]
     
     # Check if user already has a score
-    existing_entry = collection.find_one({"user_id": user_id})
+    existing_entry = collection.find_one({"user_id": str(user_id)})
     
     if existing_entry and existing_entry["score"] >= score:
         # Don't update if existing score is higher
@@ -27,7 +34,7 @@ def submit_score(user_id: str, username: str, score: int) -> bool:
     if existing_entry:
         # Update existing entry
         collection.update_one(
-            {"user_id": user_id},
+            {"user_id": str(user_id)},
             {"$set": {
                 "score": score,
                 "created_at": entry.created_at
@@ -62,7 +69,7 @@ def get_user_score(user_id: str):
     Get the score for a specific user.
     """
     collection = db["leaderboard"]
-    entry = collection.find_one({"user_id": user_id})
+    entry = collection.find_one({"user_id": str(user_id)})
     
     if entry:
         entry["id"] = str(entry.pop("_id"))
