@@ -7,9 +7,10 @@ import './CultureGames.css';
 
 interface IdiomsGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (score: number) => void;
   timeLimit?: number; // Time limit in seconds (default: 120)
+  currentScore?: number;
 }
 
 function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGameProps) {
@@ -116,12 +117,12 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   if (loading && !idiomItem) {

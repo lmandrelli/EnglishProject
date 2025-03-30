@@ -9,9 +9,10 @@ type VerbFormItem = VerbConjugationItem;
 
 interface VerbFormsGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (score: number) => void;
   timeLimit?: number;
+  currentScore?: number;
 }
 
 function VerbFormsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: VerbFormsGameProps) {
@@ -81,12 +82,12 @@ function VerbFormsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: VerbForms
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   if (loading) {

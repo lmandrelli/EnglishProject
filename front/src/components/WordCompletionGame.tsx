@@ -8,9 +8,10 @@ import './CultureGames.css';
 
 interface WordCompletionGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (score: number) => void;
   timeLimit?: number;
+  currentScore?: number;
 }
 
 function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: WordCompletionGameProps) {
@@ -90,12 +91,12 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   if (loading) {

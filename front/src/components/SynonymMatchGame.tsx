@@ -7,9 +7,10 @@ import './CultureGames.css';
 
 interface SynonymMatchGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (score: number) => void;
   timeLimit?: number;
+  currentScore?: number;
 }
 
 function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: SynonymMatchGameProps) {
@@ -114,12 +115,12 @@ function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Synony
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   if (loading) {

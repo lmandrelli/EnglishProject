@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./Game.css";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { submitScore } from "../services/leaderboardService";
 import CrosswordGame from "../components/CrosswordGame";
 import ErrorDetectionGame from "../components/ErrorDetectionGame";
 import RegionalVariantsGame from "../components/RegionalVariantsGame";
@@ -175,11 +176,15 @@ function Game() {
     setGameState({ mode, inProgress: true });
   };
 
-  const handleGameWin = () => {
+  const [totalScore, setTotalScore] = useState(0);
+
+  const handleGameWin = (gameScore: number) => {
+    setTotalScore(prev => prev + gameScore);
     handleNextRound();
   };
 
-  const handleGameLose = () => {
+  const handleGameLose = async () => {
+    await submitScore(totalScore);
     navigate("/main-menu");
   };
 
@@ -218,9 +223,10 @@ function Game() {
               <CrosswordGame
                 wordCount={5}
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -229,9 +235,10 @@ function Game() {
             <div className="game-container">
               <RegionalVariantsGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -240,9 +247,10 @@ function Game() {
             <div className="game-container">
               <FoodOriginsGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -251,9 +259,10 @@ function Game() {
             <div className="game-container">
               <IdiomsGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -262,9 +271,10 @@ function Game() {
             <div className="game-container">
               <SynonymMatchGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -273,9 +283,10 @@ function Game() {
             <div className="game-container">
               <PhrasalVerbGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -284,9 +295,10 @@ function Game() {
             <div className="game-container">
               <WordCompletionGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -295,9 +307,10 @@ function Game() {
             <div className="game-container">
               <ErrorDetectionGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
@@ -306,14 +319,16 @@ function Game() {
             <div className="game-container">
               <VerbFormsGame
                 enemyScore={selectedEnemy.score}
-                onWin={handleGameWin}
+                onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
                 timeLimit={60}
+                currentScore={totalScore}
               />
             </div>
           )}
         </div>
       )}
+      <div className="global-score-display">Total Score: {totalScore}</div>
       {!selectedEnemy && (
         <div className="enemies-container">
           {enemies.map((enemy) => (

@@ -7,9 +7,10 @@ import './CultureGames.css';
 
 interface PhrasalVerbGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (score: number) => void;
   timeLimit?: number;
+  currentScore?: number;
 }
 
 function PhrasalVerbGame({ enemyScore, onWin, onLose, timeLimit = 120 }: PhrasalVerbGameProps) {
@@ -116,12 +117,12 @@ function PhrasalVerbGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Phrasal
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   // Helper function to get the count of a particle's usage in matched pairs

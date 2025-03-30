@@ -24,10 +24,11 @@ interface Cell {
 
 interface CrosswordGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (socre:number) => void;
   wordCount?: number;
   timeLimit?: number; // Time limit in seconds (default: 180)
+  currentScore?: number;
 }
 
 interface WordWithDefinition {
@@ -218,7 +219,7 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
 
-  const isCompletedCell = (x: number, y: number): boolean => {
+const isCompletedCell = (x: number, y: number): boolean => {
     const cellCompletedWords = words.filter(word => {
       if (word.direction === 'across') {
         return y === word.startY && x >= word.startX && x < word.startX + word.word.length;
@@ -355,8 +356,8 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   };
 
   const initializeNewPuzzle = async () => {
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
     
     let attempts = 0;
     const maxAttempts = 15;
@@ -365,8 +366,8 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
       try {
         console.log(`🔄 Initializing new puzzle (attempt ${attempts + 1}/${maxAttempts})`);
         const getNewWord = async () => {
-          const response = await getVocabularyCrossword();
-          if (!response) throw new Error("Failed to fetch word");
+      const response = await getVocabularyCrossword();
+      if (!response) throw new Error("Failed to fetch word");
           return { 
             word: response.word,
             definition: response.definition,
@@ -734,7 +735,7 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleTimeUp = () => {
@@ -756,7 +757,7 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   return (

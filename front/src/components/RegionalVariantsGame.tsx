@@ -7,9 +7,10 @@ import './CultureGames.css';
 
 interface RegionalVariantsGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (score: number) => void;
   timeLimit?: number; // Time limit in seconds (default: 120)
+  currentScore?: number;
 }
 
 function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: RegionalVariantsGameProps) {
@@ -125,12 +126,12 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   if (loading) {

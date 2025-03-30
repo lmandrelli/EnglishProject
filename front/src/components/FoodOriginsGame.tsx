@@ -7,9 +7,10 @@ import './CultureGames.css';
 
 interface FoodOriginsGameProps {
   enemyScore: number;
-  onWin: () => void;
-  onLose: () => void;
+  onWin: (score: number) => void;
+  onLose: (score: number) => void;
   timeLimit?: number; // Temps limite en secondes (par défaut: 120)
+  currentScore?: number;
 }
 
 function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOriginsGameProps) {
@@ -130,12 +131,12 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
 
   const handleNextRound = () => {
     setShowWinAnimation(false);
-    onWin();
+    onWin(currentScore);
   };
 
   const handleReturnToMenu = () => {
     setShowLoseOverlay(false);
-    onLose();
+    onLose(currentScore);
   };
 
   if (loading) {
