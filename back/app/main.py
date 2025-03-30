@@ -1,5 +1,11 @@
+import os
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from pymongo import MongoClient
+
+from dotenv import load_dotenv
 
 from .routers import auth, game
 from .utils.auth import get_current_active_user
@@ -35,8 +41,9 @@ async def protected_route(user=Depends(get_current_active_user)):
 
 @app.on_event("startup")
 async def startup_event():
-    from pymongo import MongoClient
-    client = MongoClient("mongodb://localhost:27017")
+    load_dotenv()
+    mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
+    client = MongoClient(mongo_uri)
     db = client["celestial_wordforge"]
     # Supprimez toutes les collections
     for collection in db.list_collection_names():
