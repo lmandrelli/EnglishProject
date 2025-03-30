@@ -25,6 +25,7 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
   const [currentRound, setCurrentRound] = useState(1);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
+  const [winAnimationKey, setWinAnimationKey] = useState(0);
 
   const fetchNewIdiom = async () => {
     try {
@@ -77,6 +78,7 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
       if (newScore > enemyScore) {
         setTimeout(() => {
           setShowWinAnimation(true);
+          setWinAnimationKey(prev => prev + 1);
         }, 1500);
       } else {
         // Continuer le jeu avec un nouvel idiome
@@ -96,6 +98,7 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
       if (newScore > enemyScore) {
         setTimeout(() => {
           setShowWinAnimation(true);
+          setWinAnimationKey(prev => prev + 1);
         }, 1500);
       } else {
         setTimeout(() => {
@@ -110,6 +113,7 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
     // Vérifier si le score est suffisant pour gagner
     if (currentScore > enemyScore) {
       setShowWinAnimation(true);
+      setWinAnimationKey(prev => prev + 1);
     } else {
       setShowLoseOverlay(true);
     }
@@ -135,7 +139,7 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
 
   return (
     <div className="culture-game-container">
-      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showWinAnimation && <WinAnimation key={winAnimationKey} onNextRound={handleNextRound} />}
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
       <Timer 
         duration={timeLimit} 

@@ -27,11 +27,13 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
   const [hasWon, setHasWon] = useState(false);
+  const [winAnimationKey, setWinAnimationKey] = useState(0);
 
   const handleVictory = () => {
     if (!hasWon) {
       setHasWon(true);
       setShowWinAnimation(true);
+      setWinAnimationKey(prev => prev + 1);
     }
   };
 

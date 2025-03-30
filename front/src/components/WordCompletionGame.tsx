@@ -5,7 +5,6 @@ import WinAnimation from './WinAnimation';
 import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
 
-
 interface WordCompletionGameProps {
   enemyScore: number;
   onWin: (score: number) => void;
@@ -26,11 +25,13 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(timeLimit);
   const [hasWon, setHasWon] = useState(false);
+  const [winAnimationKey, setWinAnimationKey] = useState(0);
 
   const handleVictory = () => {
     if (!hasWon) {
       setHasWon(true);
       setShowWinAnimation(true);
+      setWinAnimationKey(prev => prev + 1);
     }
   };
 
@@ -140,7 +141,7 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
 
   return (
     <div className="culture-game-container">
-      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showWinAnimation && <WinAnimation key={winAnimationKey} onNextRound={handleNextRound} />}
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
       <Timer 
         duration={timeLimit}

@@ -26,11 +26,13 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
   const [hasWon, setHasWon] = useState(false);
+  const [winAnimationKey, setWinAnimationKey] = useState(0);
 
   const handleVictory = () => {
     if (!hasWon) {
       setHasWon(true);
       setShowWinAnimation(true);
+      setWinAnimationKey(prev => prev + 1); // Force new instance
     }
   };
 
@@ -52,7 +54,36 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
   };
 
   useEffect(() => {
-    fetchNewSentence();
+    console.log('ErrorDetectionGame mounted');
+    let isMounted = true;
+    
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setSelectedSentenceIndex(null);
+        setGameOver(false);
+        setCorrect(false);
+        
+        const data = await getGrammarOddOneOut();
+        if (isMounted) {
+          setGrammarItem(data);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError('Failed to load game data');
+          setLoading(false);
+          console.error(err);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      console.log('ErrorDetectionGame unmounted');
+      isMounted = false;
+    };
   }, []);
 
   const startNewGame = () => {
@@ -82,7 +113,10 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
       setGameOver(true);
       
       if (newScore > enemyScore) {
-        setTimeout(handleVictory, 1500);
+        setTimeout(() => {
+          setHasWon(true);
+          setShowWinAnimation(true);
+        }, 1500);
       } else {
         setTimeout(() => {
           setCurrentRound(prev => prev + 1);
@@ -96,7 +130,10 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
       setGameOver(true);
       
       if (newScore > enemyScore) {
-        setTimeout(handleVictory, 1500);
+        setTimeout(() => {
+          setHasWon(true);
+          setShowWinAnimation(true);
+        }, 1500);
       } else {
         setTimeout(() => {
           setCurrentRound(prev => prev + 1);
@@ -108,7 +145,8 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
 
   const handleTimeUp = () => {
     if (!hasWon && currentScore > enemyScore) {
-      handleVictory();
+      setHasWon(true);
+      setShowWinAnimation(true);
     } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
@@ -134,7 +172,7 @@ function ErrorDetectionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Erro
 
   return (
     <div className="culture-game-container">
-      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showWinAnimation && <WinAnimation key={winAnimationKey} onNextRound={handleNextRound} />}
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
       <Timer 
         duration={timeLimit} 

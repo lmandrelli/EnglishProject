@@ -13,15 +13,9 @@ function Timer({ duration, onTimeUp, initialTime, onTimeChange }: TimerProps) {
   const progress = (timeLeft / duration) * 100;
 
   useEffect(() => {
-    if (onTimeChange) {
-      onTimeChange(timeLeft);
-    }
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
         const newTime = prevTime <= 1 ? 0 : prevTime - 1;
-        if (onTimeChange) {
-          onTimeChange(newTime);
-        }
         if (newTime === 0) {
           clearInterval(timer);
           onTimeUp();
@@ -31,7 +25,13 @@ function Timer({ duration, onTimeUp, initialTime, onTimeChange }: TimerProps) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [duration, onTimeUp, onTimeChange]);
+  }, [duration, onTimeUp]);
+
+  useEffect(() => {
+    if (onTimeChange) {
+      onTimeChange(timeLeft);
+    }
+  }, [timeLeft, onTimeChange]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

@@ -56,6 +56,7 @@ function Game() {
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [selectedEnemy, setSelectedEnemy] = useState<Enemy | null>(null);
   const [gameState, setGameState] = useState<GameState>({ mode: null, inProgress: false });
+  const [activeGameId, setActiveGameId] = useState<string | null>(null);
 
   // Get random game modes for an enemy type
   const getGameModes = (type: 'p3' | 'p4' | 'p5' | 'boss'): GameMode[] => {
@@ -173,19 +174,51 @@ function Game() {
   };
 
   const handleModeSelect = (mode: GameMode) => {
-    setGameState({ mode, inProgress: true });
+    console.log(`Selecting game mode: ${mode.id}`);
+    setActiveGameId(null); // Clear current game first
+    setGameState({ mode: null, inProgress: false }); // Force reset game state
+    setTimeout(() => {
+      console.log(`Activating game mode: ${mode.id}`);
+      setActiveGameId(mode.id);
+      setGameState({ mode, inProgress: true });
+    }, 500); // Increased delay further to ensure complete cleanup
   };
 
   const [totalScore, setTotalScore] = useState(0);
 
+  const [isHandlingWin, setIsHandlingWin] = useState(false);
+
   const handleGameWin = (gameScore: number) => {
-    console.log(`Game won at round ${currentRound}, incrementing to ${currentRound + 1}`);
-    setTotalScore(prev => prev + gameScore);
-    setCurrentRound(prev => {
-      console.log(`Setting round from ${prev} to ${prev + 1}`);
-      return prev + 1;
+    console.log('--- START handleGameWin ---');
+    console.log('Current isHandlingWin:', isHandlingWin);
+    console.log('Current round:', currentRound);
+    console.log('Incoming score:', gameScore);
+    
+    if (isHandlingWin) {
+      console.log('Already handling win - skipping');
+      return;
+    }
+    
+    setIsHandlingWin(true);
+    console.log(`Processing win for round ${currentRound}`);
+    
+    setTotalScore(prev => {
+      const newScore = prev + gameScore;
+      console.log('Updating total score from', prev, 'to', newScore);
+      return newScore;
     });
+    
+    setCurrentRound(prev => {
+      const newRound = prev + 1;
+      console.log('Updating round from', prev, 'to', newRound);
+      return newRound;
+    });
+    
+    console.log('Resetting game state');
     resetGameState();
+    
+    setIsHandlingWin(false);
+    console.log('--- END handleGameWin ---');
   };
 
   const handleGameLose = async () => {
@@ -223,7 +256,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'word_puzzle' && (
+          {gameState.mode?.id === 'word_puzzle' && activeGameId === 'word_puzzle' && (
             <div className="game-container">
               <CrosswordGame
                 wordCount={5}
@@ -236,7 +269,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'regional_variants' && (
+          {gameState.mode?.id === 'regional_variants' && activeGameId === 'regional_variants' && (
             <div className="game-container">
               <RegionalVariantsGame
                 enemyScore={selectedEnemy.score}
@@ -248,7 +281,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'cultural_origins' && (
+          {gameState.mode?.id === 'cultural_origins' && activeGameId === 'cultural_origins' && (
             <div className="game-container">
               <FoodOriginsGame
                 enemyScore={selectedEnemy.score}
@@ -260,7 +293,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'expression_mastery' && (
+          {gameState.mode?.id === 'expression_mastery' && activeGameId === 'expression_mastery' && (
             <div className="game-container">
               <IdiomsGame
                 enemyScore={selectedEnemy.score}
@@ -272,7 +305,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'word_matching' && (
+          {gameState.mode?.id === 'word_matching' && activeGameId === 'word_matching' && (
             <div className="game-container">
               <SynonymMatchGame
                 enemyScore={selectedEnemy.score}
@@ -284,7 +317,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'verb_combinations' && (
+          {gameState.mode?.id === 'verb_combinations' && activeGameId === 'verb_combinations' && (
             <div className="game-container">
               <PhrasalVerbGame
                 enemyScore={selectedEnemy.score}
@@ -296,7 +329,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'word_completion' && (
+          {gameState.mode?.id === 'word_completion' && activeGameId === 'word_completion' && (
             <div className="game-container">
               <WordCompletionGame
                 enemyScore={selectedEnemy.score}
@@ -308,7 +341,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'error_detection' && (
+          {gameState.mode?.id === 'error_detection' && activeGameId === 'error_detection' && (
             <div className="game-container">
               <ErrorDetectionGame
                 enemyScore={selectedEnemy.score}
@@ -320,7 +353,7 @@ function Game() {
             </div>
           )}
 
-          {gameState.mode?.id === 'verb_forms' && (
+          {gameState.mode?.id === 'verb_forms' && activeGameId === 'verb_forms' && (
             <div className="game-container">
               <VerbFormsGame
                 enemyScore={selectedEnemy.score}

@@ -12,28 +12,45 @@ function WinAnimation({ onNextRound }: WinAnimationProps) {
   const [randomMessage] = useState(() => messages[Math.floor(Math.random() * messages.length)]);
 
   // Afficher le message de victoire immédiatement
+  const [hasTriggeredNextRound, setHasTriggeredNextRound] = useState(false);
+
   useEffect(() => {
+    console.log('WinAnimation mounted');
     setShowMessage(true);
     
-    // Démarrer le compte à rebours après 1.5 secondes
-    const messageTimer = setTimeout(() => {
-      const timer = setInterval(() => {
+    let messageTimer: ReturnType<typeof setTimeout>;
+    let countdownTimer: ReturnType<typeof setInterval>;
+    let nextRoundTimer: ReturnType<typeof setTimeout>;
+
+    messageTimer = setTimeout(() => {
+      console.log('Starting countdown');
+      countdownTimer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
-            clearInterval(timer);
-            // Lancement automatique du prochain round après la fin du compte à rebours
-            setTimeout(onNextRound, 100);
+            console.log('Countdown complete');
+            clearInterval(countdownTimer);
+            if (!hasTriggeredNextRound) {
+              console.log('Triggering next round');
+              setHasTriggeredNextRound(true);
+              nextRoundTimer = setTimeout(() => {
+                console.log('Calling onNextRound');
+                onNextRound();
+              }, 100);
+            }
             return 0;
           }
           return prev - 1;
         });
       }, 800);
-      
-      return () => clearInterval(timer);
     }, 100);
     
-    return () => clearTimeout(messageTimer);
-  }, [onNextRound]);
+    return () => {
+      console.log('Cleaning up timers');
+      clearTimeout(messageTimer);
+      clearInterval(countdownTimer);
+      clearTimeout(nextRoundTimer);
+    };
+  }, [onNextRound, hasTriggeredNextRound]);
 
   return (
     <div className="win-overlay">

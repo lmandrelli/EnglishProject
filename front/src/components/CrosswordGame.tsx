@@ -219,11 +219,13 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
   const [hasWon, setHasWon] = useState(false);
+  const [winAnimationKey, setWinAnimationKey] = useState(0);
 
   const handleVictory = () => {
     if (!hasWon) {
       setHasWon(true);
       setShowWinAnimation(true);
+      setWinAnimationKey(prev => prev + 1);
     }
   };
 
@@ -330,8 +332,9 @@ const isCompletedCell = (x: number, y: number): boolean => {
                 const gridElement = document.querySelector('.grid') as HTMLElement;
                 if (gridElement) {
                   gridElement.classList.add('winning-grid');
-                  setTimeout(() => handleVictory(), 1000);
                 }
+                setHasWon(true);
+                setShowWinAnimation(true);
               } else {
                 initializeNewPuzzle();
               }
@@ -541,8 +544,9 @@ const isCompletedCell = (x: number, y: number): boolean => {
                 const gridElement = document.querySelector('.grid') as HTMLElement;
                 if (gridElement) {
                   gridElement.classList.add('winning-grid');
-                  setTimeout(() => handleVictory(), 1000);
                 }
+                setHasWon(true);
+                setShowWinAnimation(true);
               } else {
                 initializeNewPuzzle();
               }
@@ -747,8 +751,9 @@ const isCompletedCell = (x: number, y: number): boolean => {
       const gridElement = document.querySelector('.grid') as HTMLElement;
       if (gridElement) {
         gridElement.classList.add('winning-grid');
-        setTimeout(() => handleVictory(), 1000);
       }
+      setHasWon(true);
+      setShowWinAnimation(true);
     } else if (!hasWon) {
       setShowLoseOverlay(true);
     }
@@ -761,7 +766,7 @@ const isCompletedCell = (x: number, y: number): boolean => {
 
   return (
     <div className="crossword-game">
-      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showWinAnimation && <WinAnimation key={winAnimationKey} onNextRound={handleNextRound} />}
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
       <Timer duration={timeLimit} onTimeUp={handleTimeUp} />
       <div className="score-display">

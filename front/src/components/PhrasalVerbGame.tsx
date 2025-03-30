@@ -26,11 +26,13 @@ function PhrasalVerbGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Phrasal
   const [showWinAnimation, setShowWinAnimation] = useState(false);
   const [showLoseOverlay, setShowLoseOverlay] = useState(false);
   const [hasWon, setHasWon] = useState(false);
+  const [winAnimationKey, setWinAnimationKey] = useState(0);
 
   const handleVictory = () => {
     if (!hasWon) {
       setHasWon(true);
       setShowWinAnimation(true);
+      setWinAnimationKey(prev => prev + 1);
     }
   };
 
@@ -99,7 +101,8 @@ function PhrasalVerbGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Phrasal
         
         if (newMatchedPairs.size === phrasalVerbs.length) {
           if (currentScore + difficultyScore > enemyScore) {
-            setTimeout(handleVictory, 500);
+            setHasWon(true);
+            setShowWinAnimation(true);
           } else {
             fetchData();
           }
@@ -115,7 +118,8 @@ function PhrasalVerbGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Phrasal
 
   const handleTimeUp = () => {
     if (!hasWon && currentScore > enemyScore) {
-      handleVictory();
+      setHasWon(true);
+      setShowWinAnimation(true);
     } else if (!hasWon) {
       setShowLoseOverlay(true);
     }

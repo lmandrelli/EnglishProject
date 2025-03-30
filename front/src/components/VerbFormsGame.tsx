@@ -26,6 +26,7 @@ function VerbFormsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: VerbForms
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(timeLimit);
   const [hasWon, setHasWon] = useState(false);
+  const [winAnimationKey, setWinAnimationKey] = useState(0);
 
   const fetchData = async () => {
     try {
@@ -59,6 +60,7 @@ function VerbFormsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: VerbForms
     if (!hasWon) {
       setHasWon(true);
       setShowWinAnimation(true);
+      setWinAnimationKey(prev => prev + 1);
     }
   };
   
@@ -131,7 +133,7 @@ function VerbFormsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: VerbForms
 
   return (
     <div className="verb-forms-container">
-      {showWinAnimation && <WinAnimation onNextRound={handleNextRound} />}
+      {showWinAnimation && <WinAnimation key={winAnimationKey} onNextRound={handleNextRound} />}
       {showLoseOverlay && <LoseOverlay onReturnToMenu={handleReturnToMenu} />}
       <Timer 
         duration={timeLimit}
