@@ -358,59 +358,73 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
     setLoading(true);
     setError(null);
     
-    try {
-      console.log('🔄 Initializing new puzzle');
-      const getNewWord = async () => {
-        const response = await getVocabularyCrossword();
-        if (!response) throw new Error("Failed to fetch word");
-        return { 
-          word: response.word,
-          definition: response.definition,
-          difficulty: response.difficulty
+    let attempts = 0;
+    const maxAttempts = 15;
+    
+    while (attempts < maxAttempts) {
+      try {
+        console.log(`🔄 Initializing new puzzle (attempt ${attempts + 1}/${maxAttempts})`);
+        const getNewWord = async () => {
+          const response = await getVocabularyCrossword();
+          if (!response) throw new Error("Failed to fetch word");
+          return { 
+            word: response.word,
+            definition: response.definition,
+            difficulty: response.difficulty
+          };
         };
-      };
 
-      const wordSet = await layoutCrossword(getNewWord, wordCount);
-      console.log('📝 Generated crossword layout:', wordSet);
-      setWords(wordSet);
+        const wordSet = await layoutCrossword(getNewWord, wordCount);
+        console.log('📝 Generated crossword layout:', wordSet);
+        setWords(wordSet);
 
-      let maxX = 0;
-      let maxY = 0;
-      wordSet.forEach(word => {
-        const endX = word.startX + (word.direction === 'across' ? word.word.length : 1);
-        const endY = word.startY + (word.direction === 'down' ? word.word.length : 1);
-        maxX = Math.max(maxX, endX);
-        maxY = Math.max(maxY, endY);
-      });
+        // Initialize the grid with the new word set
+        let maxX = 0;
+        let maxY = 0;
+        wordSet.forEach(word => {
+          const endX = word.startX + (word.direction === 'across' ? word.word.length : 1);
+          const endY = word.startY + (word.direction === 'down' ? word.word.length : 1);
+          maxX = Math.max(maxX, endX);
+          maxY = Math.max(maxY, endY);
+        });
 
-      const newGrid: Cell[][] = Array(maxY + 1).fill(null).map(() => 
-        Array(maxX + 1).fill(null).map(() => ({ letter: '', isActive: false }))
-      );
+        const newGrid: Cell[][] = Array(maxY + 1).fill(null).map(() => 
+          Array(maxX + 1).fill(null).map(() => ({ letter: '', isActive: false }))
+        );
 
-      wordSet.forEach(word => {
-        for (let i = 0; i < word.word.length; i++) {
-          const x = word.direction === 'across' ? word.startX + i : word.startX;
-          const y = word.direction === 'down' ? word.startY + i : word.startY;
-          
-          newGrid[y][x].isActive = true;
-          if (i === 0) {
-            newGrid[y][x].number = word.number;
+        wordSet.forEach(word => {
+          for (let i = 0; i < word.word.length; i++) {
+            const x = word.direction === 'across' ? word.startX + i : word.startX;
+            const y = word.direction === 'down' ? word.startY + i : word.startY;
+            
+            newGrid[y][x].isActive = true;
+            if (i === 0) {
+              newGrid[y][x].number = word.number;
+            }
           }
-        }
-      });
+        });
 
-      setGrid(newGrid);
-      setCompletedWords(new Set());
-      setUserInputs({});
-      setSelectedWord(null);
-      setCurrentCell(null);
-      setCurrentDirection(null);
-      console.log('✨ New puzzle initialized');
-    } catch (err) {
-      console.error("Error initializing puzzle:", err);
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
+        setGrid(newGrid);
+        setCompletedWords(new Set());
+        setUserInputs({});
+        setSelectedWord(null);
+        setCurrentCell(null);
+        setCurrentDirection(null);
+        
+        console.log('✨ New puzzle initialized successfully');// Exit the while loop on success
+        setLoading(false);
+        return;
+
+      } catch (err) {
+        attempts++;
+        console.error(`Attempt ${attempts}/${maxAttempts} failed:`, err);
+        
+        if (attempts >= maxAttempts) {
+          setError("Unable to create a valid crossword after multiple attempts. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
     }
   };
 
@@ -776,7 +790,7 @@ function CrosswordGame({ enemyScore, onWin, onLose, wordCount = 4, timeLimit = 1
                     } ${isCompletedCell(x, y) ? 'completed' : ''}`}
                     onClick={() => handleCellClick(x, y)}
                     onKeyDown={(e) => handleKeyPress(e, x, y)}
-                    tabIndex={cell.isActive && (currentCell?.x === x && currentCell?.y === y ? 0 : -1)}
+                    tabIndex={cell.isActive ? (currentCell?.x === x && currentCell?.y === y ? 0 : -1) : undefined}
                     data-position={`${x},${y}`}
                   >
                     {cell.number && <span className="cell-number">{cell.number}</span>}

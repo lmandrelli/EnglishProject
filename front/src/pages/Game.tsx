@@ -213,7 +213,7 @@ function Game() {
           {gameState.mode?.id === 'word_puzzle' && (
             <div className="game-container">
               <CrosswordGame
-                wordCount={3}
+                wordCount={5}
                 enemyScore={selectedEnemy.score}
                 onWin={handleGameWin}
                 onLose={handleGameLose}
