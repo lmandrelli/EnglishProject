@@ -16,12 +16,12 @@ interface FoodOriginsGameProps {
 function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOriginsGameProps) {
   const [currentScore, setCurrentScore] = useState(0);
   const [foodOrigins, setFoodOrigins] = useState<FoodOriginItem[]>([]);
-  const [selectedDish, setSelectedDish] = useState<string | null>(null);
+  const [selectedDish, setSelectedDish] = useState<number | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(timeLimit);
-  const [matchedPairs, setMatchedPairs] = useState<Set<string>>(new Set());
+  const [matchedPairs, setMatchedPairs] = useState<Set<number>>(new Set());
   const [shuffledDishes, setShuffledDishes] = useState<string[]>([]);
-  const [shuffledCountries, setShuffledCountries] = useState<string[]>([]);
+  const [uniqueCountries, setUniqueCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dishDescriptions, setDishDescriptions] = useState<Map<string, string>>(new Map());
@@ -51,7 +51,10 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
       setDishDescriptions(descriptions);
       
       setShuffledDishes(data.map(item => item.dish_name).sort(() => Math.random() - 0.5));
-      setShuffledCountries(data.map(item => item.origin_country).sort(() => Math.random() - 0.5));
+      // Get unique countries and shuffle them
+      const uniqueCountriesList = Array.from(new Set(data.map(item => item.origin_country)))
+        .sort(() => Math.random() - 0.5);
+      setUniqueCountries(uniqueCountriesList);
       
       setMatchedPairs(new Set());
       setSelectedDish(null);
@@ -68,31 +71,32 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
     fetchData();
   }, []);
 
-  const handleSelection = (item: string, type: 'dish' | 'country') => {
-    if (matchedPairs.has(item)) return;
+  const handleSelection = (item: string | number, type: 'dish' | 'country') => {
     if (type === 'dish') {
-      setSelectedDish(item);
+      const dishIndex = item as number;
+      if (matchedPairs.has(dishIndex)) return;
+      setSelectedDish(dishIndex);
       setSelectedCountry(null);
     } else {
-      setSelectedCountry(item);
+      const country = item as string;
+      setSelectedCountry(country);
       setSelectedDish(null);
     }
-    if ((type === 'dish' && selectedCountry) || (type === 'country' && selectedDish)) {
-      const dish = type === 'dish' ? item : selectedDish;
-      const country = type === 'country' ? item : selectedCountry;
+
+    if ((type === 'dish' && selectedCountry) || (type === 'country' && selectedDish !== null)) {
+      const dishIndex = type === 'dish' ? item as number : selectedDish as number;
+      const country = type === 'country' ? item as string : selectedCountry as string;
       
-      const isMatch = foodOrigins.some(
-        food => food.dish_name === dish && food.origin_country === country
-      );
+      if (dishIndex >= foodOrigins.length) return;
+      const dishItem = foodOrigins[dishIndex];
+      const isMatch = dishItem.origin_country === country;
+      
       if (isMatch) {
         const newMatchedPairs = new Set(matchedPairs);
-        newMatchedPairs.add(dish as string);
-        newMatchedPairs.add(country as string);
+        newMatchedPairs.add(dishIndex);
         setMatchedPairs(newMatchedPairs);
-        // Find the matched item to get its difficulty level
-        const matchedItem = foodOrigins.find(
-          food => food.dish_name === dish && food.origin_country === country
-        );
+        // Get difficulty level from the matched item
+        const matchedItem = foodOrigins[dishIndex];
         // Score based on difficulty level
         let difficultyScore;
         if (matchedItem?.difficulty === 1) {
@@ -104,8 +108,8 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
         }
         setCurrentScore(prevScore => prevScore + difficultyScore);
         
-        // Vérifier si tous les plats ont été associés
-        if (newMatchedPairs.size === foodOrigins.length * 2) {
+        // Check if all dishes have been matched
+        if (newMatchedPairs.size === foodOrigins.length) {
           // Vérifier si le score est suffisant pour gagner
           if (currentScore + difficultyScore > enemyScore) {
             setTimeout(handleVictory, 500);
@@ -121,6 +125,18 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
       setSelectedDish(null);
       setSelectedCountry(null);
     }
+  };
+
+  // Helper function to get the count of a country's usage in matched pairs
+  const getCountryMatchCount = (country: string): number => {
+    return [...matchedPairs].reduce((count, index) => {
+      return foodOrigins[index].origin_country === country ? count + 1 : count;
+    }, 0);
+  };
+
+  // Helper function to get the total expected matches for a country
+  const getCountryTotalCount = (country: string): number => {
+    return foodOrigins.filter(food => food.origin_country === country).length;
   };
 
   const getCountryForDish = (dishName: string): string => {
@@ -184,17 +200,17 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
         </div>
         
         <div className="items-column dishes-column">
-          {shuffledDishes.map((dish, index) => (
+          {foodOrigins.map((food, index) => (
             <div 
               key={`dish-${index}`}
-              className={`food-card ${matchedPairs.has(dish) ? 'matched' : ''} ${selectedDish === dish ? 'selected' : ''}`}
-              onClick={() => !matchedPairs.has(dish) && handleSelection(dish, 'dish')}
+              className={`food-card ${matchedPairs.has(index) ? 'matched' : ''} ${selectedDish === index ? 'selected' : ''}`}
+              onClick={() => !matchedPairs.has(index) && handleSelection(index as number, 'dish')}
             >
-              {dish}
-              {matchedPairs.has(dish) && (
+              {food.dish_name}
+              {matchedPairs.has(index) && (
                 <div className="description-tooltip">
-                  <p>{dishDescriptions.get(dish)}</p>
-                  <p className="country-origin">Origin: {getCountryForDish(dish)}</p>
+                  <p>{dishDescriptions.get(food.dish_name)}</p>
+                  <p className="country-origin">Origin: {food.origin_country}</p>
                 </div>
               )}
             </div>
@@ -202,17 +218,39 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
         </div>
         
         <div className="items-column countries-column">
-          {shuffledCountries.map((country, index) => (
-            <div 
-              key={`country-${index}`}
-              className={`food-card ${matchedPairs.has(country) ? 'matched' : ''} ${selectedCountry === country ? 'selected' : ''}`}
-              onClick={() => !matchedPairs.has(country) && handleSelection(country, 'country')}
-            >
-              {country}
-            </div>
-          ))}
+          {uniqueCountries.map((country, index) => {
+            const matchCount = getCountryMatchCount(country);
+            const totalCount = getCountryTotalCount(country);
+            return (
+              <div 
+                key={`country-${index}`}
+                className={`word-card particle-card ${matchCount === totalCount ? 'matched' : ''} ${selectedCountry === country ? 'selected' : ''}`}
+                onClick={() => matchCount < totalCount && handleSelection(country, 'country')}
+              >
+                <span className="particle-text">{country}</span>
+                {totalCount > 1 && (
+                  <span className="particle-count">
+                    {matchCount}/{totalCount}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
+
+<style>{`
+       .particle-card {
+          display: flex;
+         justify-content: center;
+         align-items: center;
+         gap: 10px;
+        }
+        .particle-count {
+          font-size: 0.8em;
+          color:rgb(145, 145, 145);
+        }
+      `}</style>
     </div>
   );
 }
