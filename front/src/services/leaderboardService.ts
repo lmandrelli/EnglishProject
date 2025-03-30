@@ -51,6 +51,10 @@ export const getUserScore = async (): Promise<LeaderboardEntry | null> => {
     });
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      // No score exists yet for this user
+      return null;
+    }
     console.error('Error fetching user score:', error);
     return null;
   }
