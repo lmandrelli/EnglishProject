@@ -50,5 +50,6 @@ async def startup_event():
     for collection in db.list_collection_names():
         db[collection].drop()
     # Puis initialisez
-    init_game_data(force_update=True)
+    init_game_data()
     print("Application démarrée et données réinitialisées")
+

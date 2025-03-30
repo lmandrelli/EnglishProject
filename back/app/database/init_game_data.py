@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
+import datetime
 
 load_dotenv()
 
@@ -6774,8 +6775,31 @@ idiom_data = [
     }
 ]
 
-def init_game_data(force_update=True):
-    collections = [
+leaderboard = [
+            {
+                "user_id": "system_1",
+                "username": "TopPlayer",
+                "score": 1000,
+                "created_at": datetime.datetime.utcnow()
+            },
+            {
+                "user_id": "system_2", 
+                "username": "WordMaster",
+                "score": 850,
+                "created_at": datetime.datetime.utcnow()
+            },
+            {
+                "user_id": "system_3",
+                "username": "LanguageLearner",
+                "score": 600,
+                "created_at": datetime.datetime.utcnow()
+            }
+        ]
+
+
+def init_game_data():
+    # Only these game data collections will be updated
+    game_collections = [
         {"name": "crossword_items", "data": crossword_data},
         {"name": "gap_fill_items", "data": gap_fill_data},
         {"name": "synonym_match_items", "data": synonym_data},
@@ -6784,26 +6808,28 @@ def init_game_data(force_update=True):
         {"name": "phrasal_verb_items", "data": phrasal_verb_data},
         {"name": "regional_variant_items", "data": regional_variant_data},
         {"name": "food_origin_items", "data": food_origin_data},
-        {"name": "idiom_items", "data": idiom_data}
+        {"name": "idiom_items", "data": idiom_data},
+        {"name": "leaderboard", "data": leaderboard}
     ]
     
-    for collection in collections:
+    for collection in game_collections:
         collection_name = collection["name"]
         collection_data = collection["data"]
         
         if collection_name not in db.list_collection_names():
             db.create_collection(collection_name)
-            print(f"Collection {collection_name} créée")
+            print(f"Collection {collection_name} created")
         
-        if force_update or db[collection_name].count_documents({}) == 0:
+        # For game data collections, always clear and reinsert
+        if collection_name != "leaderboard" or db[collection_name].count_documents({}) == 0:
             if db[collection_name].count_documents({}) > 0:
                 db[collection_name].delete_many({})
-                print(f"Données existantes dans {collection_name} supprimées")
-            
-            db[collection_name].insert_many(collection_data)
-            print(f"Données de {collection_name} insérées")
+                print(f"Existing data in {collection_name} cleared")
+        
+        db[collection_name].insert_many(collection_data)
+        print(f"Game data for {collection_name} inserted")
     
-    print("Initialisation/mise à jour des données de jeu terminée")
+    print("Game data initialization/update complete")
 
 if __name__ == "__main__":
-    init_game_data(force_update=True)
+    init_game_data()
