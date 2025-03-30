@@ -7,7 +7,7 @@ from pymongo import MongoClient
 
 from dotenv import load_dotenv
 
-from .routers import auth, game
+from .routers import auth, game, leaderboard
 from .utils.auth import get_current_active_user
 from .database.init_game_data import init_game_data
 
@@ -30,6 +30,7 @@ app.add_middleware(
 # Inclure les routeurs
 app.include_router(auth.router)
 app.include_router(game.router)
+app.include_router(leaderboard.router)
 
 @app.get("/health")
 async def health_check():

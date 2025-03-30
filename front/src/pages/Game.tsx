@@ -88,10 +88,10 @@ function Game() {
 
     if (isBoss) {
       // Boss score progression: 500, 1000, 5000, 10000, etc.
-      score = cycleNum === 0 ? 500 : Math.pow(2, cycleNum + 1) * 1000;
+      score = cycleNum === 0 ? 500 : 450 * (cycleNum + 1);
     } else {
       // Regular enemies score
-      const baseRoundScore = cycleNum === 0 ? 200 : Math.pow(2, cycleNum) * 400;
+      const baseRoundScore = cycleNum === 0 ? 200 : 300 * cycleNum;
       
       if (baseScore) {
         // Generate score within ±50 of base score for consistent round scores
@@ -108,7 +108,9 @@ function Game() {
   // Set up enemies for the round
   useEffect(() => {
     let roundEnemies: Enemy[] = [];
+    console.log(`Setting up round ${currentRound}`);
     const isBossRound = currentRound % 3 === 0;
+    console.log(`Is boss round: ${isBossRound}`);
     
     if (isBossRound) {
       // Boss round
@@ -186,6 +188,7 @@ function Game() {
       <button className="home-button" onClick={handleHomeClick}>
         <Home size={24} />
       </button>
+
       {selectedEnemy && (
         <div className="battle-area">
           <div className="selected-enemy">
@@ -222,7 +225,6 @@ function Game() {
             </div>
           )}
 
-          {/* Add the new culture game components */}
           {gameState.mode?.id === 'regional_variants' && (
             <div className="game-container">
               <RegionalVariantsGame

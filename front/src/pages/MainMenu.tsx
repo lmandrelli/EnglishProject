@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Leaderboard from '../components/Leaderboard';
 import './MainMenu.css';
 
 function MainMenu() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [particles, setParticles] = useState<Array<{ id: number, top: string, left: string, size: string, delay: string }>>([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Génère des particules en arrière-plan
   useEffect(() => {
@@ -28,9 +30,12 @@ function MainMenu() {
     navigate('/Game');
   };
 
-  const handleLoadGame = () => {
-    console.log('Charger une partie');
-    // Logique pour charger une partie sauvegardée
+  const handleShowLeaderboard = () => {
+    setShowLeaderboard(true);
+  };
+
+  const handleCloseLeaderboard = () => {
+    setShowLeaderboard(false);
   };
 
   const handleDisconnect = () => {
@@ -68,14 +73,23 @@ function MainMenu() {
           <button onClick={handleNewGame} className="button menu-button">
             Nouvelle Partie
           </button>
-          <button onClick={handleLoadGame} className="button menu-button">
-            Charger Partie
+          <button onClick={handleShowLeaderboard} className="button menu-button">
+            Leaderboard
           </button>
           <button onClick={handleDisconnect} className="button menu-button menu-button-disconnect">
             Déconnexion
           </button>
         </div>
       </div>
+
+      {showLeaderboard && (
+        <div className="menu-overlay">
+          <div className="menu-leaderboard">
+            <button className="close-button" onClick={handleCloseLeaderboard}>×</button>
+            <Leaderboard />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
