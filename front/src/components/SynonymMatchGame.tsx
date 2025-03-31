@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { getVocabularySynonyms, SynonymMatchItem } from '../services/gameService';
 import Timer from './Timer';
+
+// Using Fisher-Yates shuffle algorithm for better randomization
+const shuffle = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
 import WinAnimation from './WinAnimation';
 import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
@@ -43,8 +54,8 @@ function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Synony
       const data = await getVocabularySynonyms(undefined, 5);
       setSynonymPairs(data);
       
-      setShuffledWords(data.map(item => item.word).sort(() => Math.random() - 0.5));
-      setShuffledSynonyms(data.map(item => item.synonym).sort(() => Math.random() - 0.5));
+      setShuffledWords(shuffle(data.map(item => item.word)));
+      setShuffledSynonyms(shuffle(data.map(item => item.synonym)));
       
       setMatchedPairs(new Set());
       setSelectedWord(null);

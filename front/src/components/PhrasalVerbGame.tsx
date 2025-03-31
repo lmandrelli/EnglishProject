@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { getGrammarPhrasalVerbs, PhrasalVerbItem } from '../services/gameService';
 import Timer from './Timer';
+
+// Using Fisher-Yates shuffle algorithm for better randomization
+const shuffle = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
 import WinAnimation from './WinAnimation';
 import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
@@ -43,9 +54,8 @@ function PhrasalVerbGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Phrasal
       setPhrasalVerbs(data);
       
       // Get unique particles and shuffle them
-      const uniqueParticlesList = Array.from(new Set(data.map(item => item.particle)))
-        .sort(() => Math.random() - 0.5);
-      setUniqueParticles(uniqueParticlesList);
+      const uniqueParticlesList = shuffle(Array.from(new Set(data.map(item => item.particle))));
+      setUniqueParticles(shuffle(uniqueParticlesList));
       
       setMatchedPairs(new Set());
       setSelectedVerbIndex(null);

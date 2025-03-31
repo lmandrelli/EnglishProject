@@ -50,10 +50,23 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
       });
       setDishDescriptions(descriptions);
       
-      setShuffledDishes(data.map(item => item.dish_name).sort(() => Math.random() - 0.5));
+      // Using Fisher-Yates shuffle algorithm for better randomization
+      const shuffle = <T,>(array: T[]): T[] => {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
+      };
+
+      // Shuffle dish names
+      setShuffledDishes(shuffle(data.map(item => item.dish_name)));
+
       // Get unique countries and shuffle them
-      const uniqueCountriesList = Array.from(new Set(data.map(item => item.origin_country)))
-        .sort(() => Math.random() - 0.5);
+      const uniqueCountriesList = shuffle(
+        Array.from(new Set(data.map(item => item.origin_country)))
+      );
       setUniqueCountries(uniqueCountriesList);
       
       setMatchedPairs(new Set());

@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { getCultureRegionalVariants, RegionalVariantItem } from '../services/gameService';
 import Timer from './Timer';
+
+// Using Fisher-Yates shuffle algorithm for better randomization
+const shuffle = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
 import WinAnimation from './WinAnimation';
 import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
@@ -43,8 +54,8 @@ function RegionalVariantsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Re
       const data = await getCultureRegionalVariants(undefined, 5);
       setRegionalVariants(data);
       
-      setShuffledUK(data.map(item => item.uk_word).sort(() => Math.random() - 0.5));
-      setShuffledUS(data.map(item => item.us_word).sort(() => Math.random() - 0.5));
+      setShuffledUK(shuffle(data.map(item => item.uk_word)));
+      setShuffledUS(shuffle(data.map(item => item.us_word)));
       
       setMatchedPairs(new Set());
       setSelectedWord(null);

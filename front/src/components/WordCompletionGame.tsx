@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import { getVocabularyGapFill, GapFillItem } from '../services/gameService';
 import Timer from './Timer';
+
+// Using Fisher-Yates shuffle algorithm for better randomization
+const shuffle = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
 import WinAnimation from './WinAnimation';
 import LoseOverlay from './LoseOverlay';
 import './CultureGames.css';
@@ -39,7 +50,7 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
     try {
       setLoading(true);
       const data = await getVocabularyGapFill();
-      const shuffled = [...data.words].sort(() => Math.random() - 0.5);
+      const shuffled = shuffle([...data.words]);
       setGameData(data);
       setShuffledWords(shuffled);
       setSelectedGap(null);
