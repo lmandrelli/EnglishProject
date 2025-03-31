@@ -113,11 +113,11 @@ function FoodOriginsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: FoodOri
         // Score based on difficulty level
         let difficultyScore;
         if (matchedItem?.difficulty === 1) {
-          difficultyScore = 100;
+          difficultyScore = 50;
         } else if (matchedItem?.difficulty === 2) {
-          difficultyScore = 150;
+          difficultyScore = 75;
         } else {
-          difficultyScore = 300;
+          difficultyScore = 150;
         }
         setCurrentScore(prevScore => prevScore + difficultyScore);
         

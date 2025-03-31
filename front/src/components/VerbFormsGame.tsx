@@ -67,7 +67,7 @@ function VerbFormsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: VerbForms
   const handleCorrectAnswer = () => {
     if (gameData) {
       setIsCorrect(true);
-      const points = gameData.difficulty === 1 ? 100 : gameData.difficulty === 2 ? 150 : 300;
+      const points = gameData.difficulty === 1 ? 200 : gameData.difficulty === 2 ? 300 : 500;
       const newScore = currentScore + points;
       setCurrentScore(newScore);
 
