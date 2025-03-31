@@ -40,6 +40,7 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
 
   const handleVictory = () => {
     if (!hasWon) {
+      console.log('WordCompletionGame: Victory triggered');
       setHasWon(true);
       setShowWinAnimation(true);
       setWinAnimationKey(prev => prev + 1);
@@ -67,6 +68,13 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
     fetchData();
   }, []);
 
+  // Ajouter un effet pour surveiller showWinAnimation
+  useEffect(() => {
+    if (showWinAnimation) {
+      console.log('WordCompletionGame: Win animation is now showing');
+    }
+  }, [showWinAnimation]);
+
   const handleGapSelect = (index: number) => {
     if (!completedGaps[index]) {
       setSelectedGap(index);
@@ -87,7 +95,9 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
         // Check if all gaps are filled
         if (Object.keys(newCompletedGaps).length === gameData.words.length) {
           if (newScore > enemyScore) {
-            setTimeout(handleVictory, 500);
+            console.log('WordCompletionGame: All gaps filled, victory condition met');
+            // Utiliser handleVictory directement au lieu de setTimeout
+            handleVictory();
           } else {
             fetchData();
           }
@@ -102,6 +112,7 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
 
   const handleTimeUp = () => {
     if (!hasWon && currentScore > enemyScore) {
+      console.log('WordCompletionGame: Time up with victory condition');
       handleVictory();
     } else if (!hasWon) {
       setShowLoseOverlay(true);
@@ -109,8 +120,13 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
   };
 
   const handleNextRound = () => {
+    console.log('WordCompletionGame: handleNextRound called');
     setShowWinAnimation(false);
-    onWin(currentScore);
+    // Assurons-nous que onWin est appelé même si setShowWinAnimation n'a pas fini
+    setTimeout(() => {
+      console.log('WordCompletionGame: Calling onWin');
+      onWin(currentScore);
+    }, 0);
   };
 
   const handleReturnToMenu = () => {

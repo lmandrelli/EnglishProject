@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './WinAnimation.css';
 
 interface WinAnimationProps {
@@ -10,9 +10,24 @@ function WinAnimation({ onNextRound }: WinAnimationProps) {
   const [showMessage, setShowMessage] = useState(false);
   const messages = ["Awesome!", "Amazing!", "Fantastic!", "Great job!", "Brilliant!"];
   const [randomMessage] = useState(() => messages[Math.floor(Math.random() * messages.length)]);
+  
+  const hasTriggeredNextRoundRef = useRef(false);
+  const onNextRoundRef = useRef(onNextRound);
 
-  // Afficher le message de victoire immédiatement
-  const [hasTriggeredNextRound, setHasTriggeredNextRound] = useState(false);
+  // Mettre à jour la référence chaque fois que onNextRound change
+  useEffect(() => {
+    onNextRoundRef.current = onNextRound;
+  }, [onNextRound]);
+
+  // Cette fonction est maintenant indépendante des rendus
+  const triggerNextRound = useCallback(() => {
+    if (!hasTriggeredNextRoundRef.current) {
+      console.log('Executing onNextRound callback');
+      hasTriggeredNextRoundRef.current = true;
+      // Utiliser la référence pour appeler la fonction la plus récente
+      onNextRoundRef.current();
+    }
+  }, []);
 
   useEffect(() => {
     console.log('WinAnimation mounted');
@@ -20,8 +35,7 @@ function WinAnimation({ onNextRound }: WinAnimationProps) {
     
     let messageTimer: ReturnType<typeof setTimeout>;
     let countdownTimer: ReturnType<typeof setInterval>;
-    let nextRoundTimer: ReturnType<typeof setTimeout>;
-
+    
     messageTimer = setTimeout(() => {
       console.log('Starting countdown');
       countdownTimer = setInterval(() => {
@@ -29,14 +43,11 @@ function WinAnimation({ onNextRound }: WinAnimationProps) {
           if (prev <= 1) {
             console.log('Countdown complete');
             clearInterval(countdownTimer);
-            if (!hasTriggeredNextRound) {
-              console.log('Triggering next round');
-              setHasTriggeredNextRound(true);
-              nextRoundTimer = setTimeout(() => {
-                console.log('Calling onNextRound');
-                onNextRound();
-              }, 100);
-            }
+            
+            console.log('Triggering next round');
+            // Déclencher le round suivant après un court délai
+            setTimeout(triggerNextRound, 100);
+            
             return 0;
           }
           return prev - 1;
@@ -44,17 +55,22 @@ function WinAnimation({ onNextRound }: WinAnimationProps) {
       }, 800);
     }, 100);
     
+    // Ajouter un timer de secours pour s'assurer que onNextRound est appelé
+    const backupTimer = setTimeout(() => {
+      console.log('Backup timer triggered');
+      triggerNextRound();
+    }, 3000);
+    
     return () => {
       console.log('Cleaning up timers');
       clearTimeout(messageTimer);
       clearInterval(countdownTimer);
-      clearTimeout(nextRoundTimer);
+      clearTimeout(backupTimer);
     };
-  }, [onNextRound, hasTriggeredNextRound]);
+  }, [triggerNextRound]);
 
   return (
     <div className="win-overlay">
-      
       <div className="win-content">
         {showMessage && (
           <div className="victory-message">

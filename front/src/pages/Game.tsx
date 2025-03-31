@@ -171,17 +171,17 @@ function Game() {
   const resetGameState = () => {
     setSelectedEnemy(null);
     setGameState({ mode: null, inProgress: false });
+    setActiveGameId(null);
   };
 
   const handleModeSelect = (mode: GameMode) => {
     console.log(`Selecting game mode: ${mode.id}`);
-    setActiveGameId(null); // Clear current game first
-    setGameState({ mode: null, inProgress: false }); // Force reset game state
+    // Mise à jour des deux états en une seule opération pour éviter le problème de double rendu
+    const modeId = mode.id;
+    setActiveGameId(modeId);
     setTimeout(() => {
-      console.log(`Activating game mode: ${mode.id}`);
-      setActiveGameId(mode.id);
       setGameState({ mode, inProgress: true });
-    }, 500); // Increased delay further to ensure complete cleanup
+    }, 0);
   };
 
   const [totalScore, setTotalScore] = useState(0);
@@ -226,7 +226,7 @@ function Game() {
     navigate("/main-menu");
   };
 
-  const baseTimeLimit = (currentRound % 3 + 1) * 20;
+  const baseTimeLimit = (Math.floor((currentRound + 1) / 3) + 1) * 32;
 
   return (
     <div className="game-container">
@@ -265,7 +265,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*1.5}
+                timeLimit={baseTimeLimit*2.5}
                 currentScore={totalScore}
               />
             </div>
@@ -277,7 +277,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*1.25}
+                timeLimit={baseTimeLimit}
                 currentScore={totalScore}
               />
             </div>
@@ -301,7 +301,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*2}
+                timeLimit={baseTimeLimit*2.25}
                 currentScore={totalScore}
               />
             </div>
@@ -313,7 +313,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*1.5}
+                timeLimit={baseTimeLimit}
                 currentScore={totalScore}
               />
             </div>
@@ -325,7 +325,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit}
+                timeLimit={baseTimeLimit*1.25}
                 currentScore={totalScore}
               />
             </div>
@@ -337,7 +337,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit}
+                timeLimit={baseTimeLimit*1.75}
                 currentScore={totalScore}
               />
             </div>
@@ -361,7 +361,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*1.75}
+                timeLimit={baseTimeLimit*2}
                 currentScore={totalScore}
               />
             </div>
