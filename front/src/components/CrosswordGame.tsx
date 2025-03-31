@@ -369,7 +369,7 @@ const isCompletedCell = (x: number, y: number): boolean => {
       setError(null);
     
     let attempts = 0;
-    const maxAttempts = 15;
+    const maxAttempts = 50;
     
     while (attempts < maxAttempts) {
       try {
