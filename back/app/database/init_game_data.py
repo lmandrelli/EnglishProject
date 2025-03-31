@@ -6778,20 +6778,62 @@ idiom_data = [
 leaderboard = [
             {
                 "user_id": "system_1",
-                "username": "TopPlayer",
-                "score": 1000,
+                "username": "𝕋𝕙𝕖𝕄𝕒𝕤𝕥𝕖𝕣𝕞𝕚𝕟𝕕",
+                "score": 1_000_000_000_000_000_000,
                 "created_at": datetime.datetime.utcnow()
             },
             {
+                "user_id": "system_4",
+                "username": "GenialMan",
+                "score": 150_000_000_000_000,
+                "created_at": datetime.datetime.utcnow()    
+            },
+            {
+                "user_id": "system_5",
+                "username": "TheElectrician",
+                "score": 1_250_000_000_000,
+                "created_at": datetime.datetime.utcnow()    
+            },
+            {
                 "user_id": "system_2", 
-                "username": "WordMaster",
-                "score": 850,
+                "username": "Larry",
+                "score": 500_000_000,
+                "created_at": datetime.datetime.utcnow()
+            },
+            {
+                "user_id": "system_6",
+                "username": "Mickey",
+                "score": 1_250_000,
                 "created_at": datetime.datetime.utcnow()
             },
             {
                 "user_id": "system_3",
-                "username": "LanguageLearner",
-                "score": 600,
+                "username": "Tralalelo tralala",
+                "score": 400_000,
+                "created_at": datetime.datetime.utcnow()
+            },
+            {
+                "user_id": "system_7",
+                "username": "NPC",
+                "score": 1_000,
+                "created_at": datetime.datetime.utcnow()
+            },
+            {
+                "user_id": "system_8",
+                "username": "Oupy Goupy",
+                "score": 2_500,
+                "created_at": datetime.datetime.utcnow()
+            },
+            {
+                "user_id": "system_9",
+                "username": "Favé",
+                "score": 5_000,
+                "created_at": datetime.datetime.utcnow()
+            },
+            {
+                "user_id": "system_10",
+                "username": "Lance Stroll",
+                "score": 0,
                 "created_at": datetime.datetime.utcnow()
             }
         ]

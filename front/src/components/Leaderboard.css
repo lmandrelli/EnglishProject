@@ -22,7 +22,7 @@
 
 .score-header {
   display: grid;
-  grid-template-columns: 80px 1fr 120px;
+  grid-template-columns: 40px 1fr 200px;
   background-color: #3498db;
   color: white;
   padding: 1rem;
