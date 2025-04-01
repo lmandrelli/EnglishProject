@@ -1,18 +1,62 @@
 services:
   mongodb:
     image: mongo:latest
-    container_name: celestial_wordforge_mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
-      MONGO_INITDB_DATABASE: celestial_wordforge
-    ports:
-      - "27017:27017"
+    container_name: mongodb
+    restart: always
     volumes:
-      - mongodb_data:/data/db
-      - ./mongodb:/docker-entrypoint-initdb.d
-    restart: unless-stopped
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/english_project?authSource=admin
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/html:/usr/share/nginx/html
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
-  mongodb_data:
-    name: celestial_wordforge_mongodb_data
+  mongo_data:
+    driver: local
