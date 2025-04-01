@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.PROD ? '/api/leaderboard' : 'http://localhost:8000/api/leaderboard';
 
 interface LeaderboardEntry {
   id: string;
@@ -13,7 +13,7 @@ interface LeaderboardEntry {
 export const submitScore = async (score: number): Promise<boolean> => {
   try {
     const response = await axios.post(
-      `${API_URL}/api/leaderboard/submit`,
+      `${API_URL}/submit`,
       { score },
       {
         headers: {
@@ -30,7 +30,7 @@ export const submitScore = async (score: number): Promise<boolean> => {
 
 export const getTopScores = async (): Promise<LeaderboardEntry[]> => {
   try {
-    const response = await axios.get(`${API_URL}/api/leaderboard/top`, {
+    const response = await axios.get(`${API_URL}/top`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
@@ -44,7 +44,7 @@ export const getTopScores = async (): Promise<LeaderboardEntry[]> => {
 
 export const getUserScore = async (): Promise<LeaderboardEntry | null> => {
   try {
-    const response = await axios.get(`${API_URL}/api/leaderboard/user`, {
+    const response = await axios.get(`${API_URL}/user`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },

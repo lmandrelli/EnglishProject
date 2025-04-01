@@ -1,6 +1,6 @@
 import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
 
-const API_URL = 'http://localhost:8000/api/auth';
+const API_URL = import.meta.env.PROD ? '/api/auth' : 'http://localhost:8000/api/auth';
 
 // Types pour l'authentification
 export interface LoginRequest {

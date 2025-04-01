@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/game';
+const API_URL = import.meta.env.PROD ? '/api/game' : 'http://localhost:8000/api/game';
 
 export interface CrosswordItem {
     _id: string;
