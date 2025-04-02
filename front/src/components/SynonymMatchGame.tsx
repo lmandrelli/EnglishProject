@@ -100,11 +100,11 @@ function SynonymMatchGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Synony
         
         let difficultyScore;
         if (matchedItem?.difficulty === 1) {
-          difficultyScore = 30;
-        } else if (matchedItem?.difficulty === 2) {
           difficultyScore = 50;
+        } else if (matchedItem?.difficulty === 2) {
+          difficultyScore = 75;
         } else {
-          difficultyScore = 80;
+          difficultyScore = 125;
         }
         setCurrentScore(prevScore => prevScore + difficultyScore);
         

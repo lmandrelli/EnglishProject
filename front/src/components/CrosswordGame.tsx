@@ -39,10 +39,10 @@ interface WordWithDefinition {
 
 const getPointsPerLetter = (difficulty: number): number => {
   switch (difficulty) {
-    case 1: return 10;
-    case 2: return 14;
-    case 3: return 28;
-    default: return 10;
+    case 1: return 8;
+    case 2: return 12;
+    case 3: return 20;
+    default: return 8;
   }
 };
 

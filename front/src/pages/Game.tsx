@@ -337,7 +337,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit}
+                timeLimit={baseTimeLimit*1.25}
                 currentScore={totalScore}
               />
             </div>
