@@ -226,7 +226,7 @@ function Game() {
     navigate("/main-menu");
   };
 
-  const baseTimeLimit = (Math.floor((currentRound + 1) / 3) + 1) * 32;
+  const baseTimeLimit = (Math.floor(currentRound / 3) + 1) * 24;
 
   return (
     <div className="game-container">
@@ -265,7 +265,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*2.5}
+                timeLimit={baseTimeLimit*2}
                 currentScore={totalScore}
               />
             </div>
@@ -289,7 +289,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*1.5}
+                timeLimit={baseTimeLimit*1.75}
                 currentScore={totalScore}
               />
             </div>
@@ -301,7 +301,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*2.25}
+                timeLimit={baseTimeLimit*2}
                 currentScore={totalScore}
               />
             </div>
@@ -313,7 +313,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit}
+                timeLimit={baseTimeLimit*1.5}
                 currentScore={totalScore}
               />
             </div>
@@ -337,7 +337,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*1.75}
+                timeLimit={baseTimeLimit}
                 currentScore={totalScore}
               />
             </div>
@@ -349,7 +349,7 @@ function Game() {
                 enemyScore={selectedEnemy.score}
                 onWin={(score: number) => handleGameWin(score)}
                 onLose={handleGameLose}
-                timeLimit={baseTimeLimit*1.5}
+                timeLimit={baseTimeLimit*1.75}
                 currentScore={totalScore}
               />
             </div>

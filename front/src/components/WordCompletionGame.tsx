@@ -88,7 +88,7 @@ function WordCompletionGame({ enemyScore, onWin, onLose, timeLimit = 120 }: Word
         setCompletedGaps(newCompletedGaps);
 
         // Calculate score based on difficulty
-        const points = gameData.difficulty === 1 ? 75 : gameData.difficulty === 2 ? 125 : 250;
+        const points = gameData.difficulty === 1 ? 30 : gameData.difficulty === 2 ? 50 : 80;
         const newScore = currentScore + points;
         setCurrentScore(newScore);
 

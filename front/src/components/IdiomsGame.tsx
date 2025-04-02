@@ -64,11 +64,11 @@ function IdiomsGame({ enemyScore, onWin, onLose, timeLimit = 120 }: IdiomsGamePr
       // Score based on difficulty level
       let difficultyScore;
       if (idiomItem.difficulty === 1) {
-        difficultyScore = 200;
+        difficultyScore = 100;
       } else if (idiomItem.difficulty === 2) {
-        difficultyScore = 300;
+        difficultyScore = 150;
       } else {
-        difficultyScore = 500;
+        difficultyScore = 250;
       }
       const newScore = currentScore + difficultyScore;
       setCurrentScore(newScore);
